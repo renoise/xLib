@@ -8,7 +8,7 @@ Static methods for working with pattern/phrase/matrix/sequence-selections
 .
 #
 
-There are three different types of selections. Each one is just a plain 
+There are different types of selections. Each one is just a plain 
 lua table containing the following values:
 
 ### Pattern-selection 
@@ -20,6 +20,15 @@ lua table containing the following values:
     end_line,       -- End pattern line index
     end_track,      -- End track index
     end_column      -- End column index within end_track
+  }
+
+### Sequence-selection 
+
+  {
+    start_line,     -- Start pattern line index (default = 1)
+    start_sequence, -- Start sequence index 
+    end_line,       -- End pattern line index (default = number_of_lines)
+    end_pattern     -- End sequence index 
   }
 
 ### Phrase-selection 
@@ -200,6 +209,44 @@ function xSelection.get_matrix_selection()
 end
 
 ---------------------------------------------------------------------------------------------------
+-- [Static] Retrieve the sequence selection 
+-- @return table
+
+function xSelection.get_selection_in_sequence()
+  TRACE("xSelection.get_selection_in_sequence()")
+
+  local seq_range = rns.sequencer.selection_range
+  
+  return {
+    start_sequence = seq_range[1],
+    start_line = 1,
+    end_sequence = seq_range[2],
+    end_line = xPatternSequencer.get_number_of_lines(seq_range[2])
+  }
+  
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- [Static] Retrieve a sequence selection representing the entire song
+-- @return table
+
+function xSelection.get_entire_sequence()
+  TRACE("xSelection.get_entire_sequence()")
+
+  local last_seq_index = #rns.sequencer.pattern_sequence
+
+  return {
+    start_sequence = 1,
+    start_line = 1,
+    end_sequence = last_seq_index,
+    end_line = xPatternSequencer.get_number_of_lines(last_seq_index)
+  }
+  
+
+end
+
+---------------------------------------------------------------------------------------------------
 -- [Static] Test if selection is limited to a single column
 -- @param patt_sel (table ) 
 -- @return bool
@@ -251,3 +298,64 @@ function xSelection.spans_entire_line(patt_sel,number_of_columns)
 
 end
 
+---------------------------------------------------------------------------------------------------
+-- check if song-position is within a sequence range
+-- @param seq_range (xSelection "sequence")
+-- @param songpos (renoise.SongPos, or songpos-alike table)
+-- @return bool
+
+function xSelection.within_sequence_range(seq_range,songpos)
+  TRACE("xSelection.within_sequence_range(seq_range,songpos)",seq_range,songpos)
+
+  assert(type(seq_range)=="table")
+  
+  if (seq_range.start_sequence < songpos.sequence) 
+    and (seq_range.end_sequence > songpos.sequence) 
+  then 
+    print("got here 1")
+    return false 
+  else
+    if (seq_range.start_sequence == songpos.sequence) 
+      and (seq_range.start_line > songpos.line)  
+    then
+      print("got here 2")
+      return false 
+    end
+    if (seq_range.end_sequence == songpos.sequence)  
+    and (seq_range.end_line < songpos.line) 
+    then 
+      print("got here 3")
+      return false
+    end 
+  end
+  return true
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- retrieve the pattern-lines contained in a specific sequence-index 
+-- @param seq_range (xSelection "sequence")
+-- @param seq_idx (number)
+-- @param patt_num_lines (number), optional (if undefined, derived from seq_idx)
+-- @return from_line (number), to_line (number) or nil if outside range 
+
+function xSelection.get_lines_in_range(seq_range,seq_idx,patt_num_lines)
+  TRACE("xSelection.get_lines_in_range(seq_range,seq_idx,patt_num_lines)",seq_range,seq_idx,patt_num_lines)
+
+  assert(type(seq_range)=="table")
+  assert(type(seq_idx)=="number")
+
+  if not patt_num_lines then 
+    local patt,patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
+    patt_num_lines = patt.number_of_lines
+  end 
+
+  if (seq_range.start_sequence >= seq_idx) or (seq_range.end_sequence <= seq_idx) then 
+    -- pattern is within range 
+    local from_line = (seq_range.start_sequence == seq_idx) and seq_range.start_line or 1
+    local to_line = (seq_range.end_sequence == seq_idx) and seq_range.end_line or patt_num_lines
+    print(">>> seq_idx,from_line,to_line:",seq_idx,from_line,to_line)
+    return from_line,to_line
+  end
+
+end

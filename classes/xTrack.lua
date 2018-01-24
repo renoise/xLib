@@ -392,3 +392,22 @@ function xTrack.set_column_mute(col_idx)
   end
 end
 
+--------------------------------------------------------------------------------
+-- @param track (renoise.Track)
+-- @param device (AudioDevice)
+-- @return number or nil
+
+function xTrack.get_device_index(track,device)
+  TRACE("xTrack.get_device_index(track,device)",track,device)
+
+  assert(type(track)=="Track")
+  assert(type(device)=="AudioDevice")
+
+  for k,v in ipairs(track.devices) do
+    if rawequal(v,device) then
+      return k
+    end
+  end
+
+end
+
