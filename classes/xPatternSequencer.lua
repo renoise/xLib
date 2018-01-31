@@ -245,10 +245,49 @@ function xPatternSequencer.get_number_of_lines(seq_idx)
 	
   assert(type(seq_idx) == "number")
 
-  local patt_idx = rns.sequencer:pattern(seq_idx)
-  if patt_idx then
-    return rns:pattern(patt_idx).number_of_lines,rns:pattern(patt_idx)
+  local patt,patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
+  if patt then
+    return patt.number_of_lines,patt_idx
   end
 
+end
+
+---------------------------------------------------------------------------------------------------
+-- [Static] Retrieve the pattern at the specified sequencer index 
+-- @return renoise.Pattern or nil
+-- @return int (pattern index) or nil 
+
+function xPatternSequencer.get_pattern_at_index(seq_idx)
+  TRACE("xPatternSequencer.get_pattern_at_index(seq_idx)",seq_idx)
+
+  local patt_idx = rns.sequencer:pattern(seq_idx)
+  if patt_idx then 
+    return rns:pattern(patt_idx),patt_idx
+  end 
+
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- simple sequence navigation (previous)
+
+function xPatternSequencer.goto_previous()
+  TRACE("xPatternSequencer.goto_previous()")
+  local seq_idx = rns.selected_sequence_index
+  if (seq_idx > 1) then 
+    rns.selected_sequence_index = seq_idx - 1
+  end
+end
+
+---------------------------------------------------------------------------------------------------
+-- simple sequence navigation (next)
+
+function xPatternSequencer.goto_next()
+  TRACE("xPatternSequencer.goto_next()")
+  local seq_idx = rns.selected_sequence_index
+  local seq_length = #rns.sequencer.pattern_sequence
+  if (seq_idx < seq_length) then 
+    rns.selected_sequence_index = seq_idx + 1
+  end
 end
 
