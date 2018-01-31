@@ -317,7 +317,7 @@ function xPhrase.apply_to_track(options)
 
   -- when selection is missing, span the entire track
   if not sel then
-    sel = xSelection.get_pattern_track(options.sequence_index,options.track_index)
+    sel = xPatternSelection.get_pattern_track(options.sequence_index,options.track_index)
     if options.expand_columns then
       -- if we should expand columns, assume the size
       -- of the original phrase instead of the selection

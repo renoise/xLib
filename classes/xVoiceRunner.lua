@@ -173,7 +173,7 @@ end
 -- gather voice-runs according to the specified settings
 -- @param ptrack_or_phrase (renoise.PatternTrack or renoise.InstrumentPhrase)
 -- @param collect_mode (xVoiceRunner.COLLECT_MODE)
--- @param selection (table), xSelection: pattern-selection
+-- @param selection (table), xPatternSelection
 -- @param trk_idx (int)
 -- @param seq_idx (int)
 
@@ -194,7 +194,7 @@ function xVoiceRunner:collect(ptrack_or_phrase,collect_mode,selection,trk_idx,se
     trk_idx = rns.selected_track_index
     seq_idx = rns.selected_sequence_index
     local col_idx = rns.selected_note_column_index
-    selection = xSelection.get_column_in_track(seq_idx,trk_idx,col_idx)
+    selection = xPatternSelection.get_column_in_track(seq_idx,trk_idx,col_idx)
   elseif (collect_mode == xVoiceRunner.COLLECT_MODE.SELECTION) then
     if collecting_from_pattern then
       assert(type(trk_idx)=="number")
