@@ -261,7 +261,7 @@ function xTrack.get_next_track(track_idx,wrap_pattern)
   TRACE("xTrack.get_next_track(track_idx,wrap_pattern)",track_idx,wrap_pattern)
 
   track_idx = track_idx or rns.selected_track_index 
-  wrap_pattern = wrap_pattern or true
+  wrap_pattern = (wrap_pattern == nil) and false or wrap_pattern
 
   track_idx = track_idx + 1
   if (track_idx > #rns.tracks) then 
@@ -295,7 +295,7 @@ function xTrack.get_previous_track(track_idx,wrap_pattern)
   TRACE("xTrack.get_previous_track(track_idx,wrap_pattern)",track_idx,wrap_pattern)
 
   track_idx = track_idx or rns.selected_track_index 
-  wrap_pattern = wrap_pattern or true
+  wrap_pattern = (wrap_pattern == nil) and false or wrap_pattern
 
   track_idx = track_idx - 1
   if (track_idx < 1) then 
@@ -390,5 +390,24 @@ function xTrack.set_column_mute(col_idx)
       end
     end
   end
+end
+
+--------------------------------------------------------------------------------
+-- @param track (renoise.Track)
+-- @param device (AudioDevice)
+-- @return number or nil
+
+function xTrack.get_device_index(track,device)
+  TRACE("xTrack.get_device_index(track,device)",track,device)
+
+  assert(type(track)=="Track")
+  assert(type(device)=="AudioDevice")
+
+  for k,v in ipairs(track.devices) do
+    if rawequal(v,device) then
+      return k
+    end
+  end
+
 end
 
