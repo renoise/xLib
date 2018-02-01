@@ -24,4 +24,5 @@
 
 ## 0.5
 
+* xPhrase: new DOC_PROPS implementation
 * Standalone version
