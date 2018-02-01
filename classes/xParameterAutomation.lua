@@ -176,6 +176,7 @@ end
 -- @param track_idx (number)
 -- @param param (renoise.DeviceParameter)
 -- @param seq_range (xSequencerSelection) range that should be cleared
+-- @return boolean
 
 function xParameterAutomation.clear(track_idx,param,seq_range)
   TRACE("xParameterAutomation.clear(track_idx,param,seq_range)",track_idx,param,seq_range)
@@ -198,6 +199,8 @@ function xParameterAutomation.clear(track_idx,param,seq_range)
       xParameterAutomation._clear_impl(trk_auto,seq_range,seq_idx,patt.number_of_lines)
     end
   end
+
+  return true
   
 end
 
@@ -226,6 +229,7 @@ end
 -- @param seq_range (xSequencerSelection) restrict to this range
 -- @param track_idx (number)
 -- @param yield_at (xParameterAutomation.YIELD_AT), for sliced processing
+-- @return boolean
 
 function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yield_at)
   TRACE("xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yield_at)",auto,apply_mode,param,seq_range,track_idx,yield_at)
@@ -303,6 +307,8 @@ function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yi
     end    
 
   end
+
+  return true
 
 end 
 
