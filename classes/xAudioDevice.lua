@@ -197,6 +197,7 @@ end
 
 --------------------------------------------------------------------------------
 -- check whether one or more device parameters are automated
+-- (AutoMate) why is this not working in headless/passive mode?
 -- @param device (renoise.AudioDevice)
 -- @return boolean
 
