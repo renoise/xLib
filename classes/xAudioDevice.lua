@@ -379,7 +379,6 @@ function xAudioDevice.paste_automation(device_auto,track_idx,device_idx,seq_rang
   -- apply the individual parameters
   for k,auto_param in ipairs(device_auto.parameters) do 
     local dest_param = rns_device.parameters[auto_param.index]
-    print("auto_param.index,dest_param",auto_param.index,dest_param)
     if (auto_param.automation) then 
       xParameterAutomation.paste(auto_param.automation,apply_mode,dest_param,seq_range,track_idx,param_yield)
     elseif (apply_mode == xParameterAutomation.APPLY_MODE.REPLACE) then

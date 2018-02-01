@@ -120,12 +120,8 @@ function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yi
   assert(type(device_idx) == "number")
   assert(type(scope) == "number")
 
-  print("rns.tracks[track_idx]",rns.tracks[track_idx].name)
-  print("param.name",param.name)
-
   -- ?? (AutoMate related) why does "is_automated" not work in headless mode 
   if not param.is_automatable then 
-    print("*** got here - param.is_automated,param.is_automatable",param.is_automated,param.is_automatable)
     return nil 
   end 
   
@@ -145,7 +141,6 @@ function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yi
     local patt,patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
     local ptrack = patt.tracks[track_idx]
     local trk_auto = ptrack:find_automation(param)
-    print("trk_auto")
     if trk_auto then
       for _,point in ipairs(trk_auto.points) do
         local point_time_in_patt = point.time-line_offset
@@ -191,7 +186,6 @@ function xParameterAutomation.clear(track_idx,param,seq_range)
   
   -- ?? (AutoMate related) why does "is_automated" not work in headless mode 
   if not param.is_automatable then 
-    print("*** got here - param.is_automated,param.is_automatable",param.is_automated,param.is_automatable)
     return nil 
   end 
   

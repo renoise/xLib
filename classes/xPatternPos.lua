@@ -59,7 +59,6 @@ end
 function xPatternPos.jump_to_next_line()
   TRACE("xPatternPos.jump_to_next_line()")
   local pos = xPatternPos.get_next_line()
-  print("pos",pos)
   rns.selected_sequence_index = pos.sequence
   rns.selected_line_index = pos.line
 end
