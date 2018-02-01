@@ -302,7 +302,7 @@ function xAudioDevice.clear_automation(track_idx,device,seq_range)
   
   for k,param in ipairs(device.parameters) do
     if (param.is_automatable) then
-      xParameterAutomation.clear(track_idx,param,seq_range)
+      xParameterAutomation.clear(param,seq_range,track_idx)
     end
   end
   
@@ -383,7 +383,7 @@ function xAudioDevice.paste_automation(device_auto,track_idx,device_idx,seq_rang
       xParameterAutomation.paste(auto_param.automation,apply_mode,dest_param,seq_range,track_idx,param_yield)
     elseif (apply_mode == xParameterAutomation.APPLY_MODE.REPLACE) then
       -- no automation: continue to clear while in REPLACE mode
-      xParameterAutomation.clear(track_idx,dest_param,seq_range)      
+      xParameterAutomation.clear(param,seq_range,track_idx)      
     end
     if (yield_at == xAudioDeviceAutomation.YIELD_AT.PARAMETER) then
       coroutine.yield()

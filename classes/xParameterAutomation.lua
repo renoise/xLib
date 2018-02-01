@@ -90,14 +90,19 @@ end
 -- @param seq_range (xSequencerSelection) restrict to this range (optional)
 -- @param track_idx, where parameter is located (optional)
 -- @param device_idx, where parameter is located (optional)
--- @return xParameterAutomation
+-- @param scope (xParameterAutomation.SCOPE)
+-- @param yield_at (xParameterAutomation.YIELD_AT), for sliced processing
+-- @return xParameterAutomation or nil if not copied 
 
-function xParameterAutomation.cut(param,seq_range,track_idx,device_idx)
+function xParameterAutomation.cut(param,seq_range,track_idx,device_idx,scope,yield_at)
+  TRACE("xParameterAutomation.cut(param,seq_range,track_idx,device_idx,scope,yield_at)",param,seq_range,track_idx,device_idx,scope,yield_at)
 
-  local automation = xParameterAutomation._fetch(param,seq_range,track_idx,device_idx)
-
-  -- TODO
-
+  local automation = xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yield_at)
+  if not automation then 
+    return nil 
+  else
+    return xParameterAutomation.clear(param,seq_range,track_idx) and automation or nil
+  end
 
 end  
 
@@ -109,7 +114,7 @@ end
 -- @param device_idx, where parameter is located
 -- @param scope (xParameterAutomation.SCOPE)
 -- @param yield_at (xParameterAutomation.YIELD_AT), for sliced processing
--- @return xParameterAutomation or nil if not automated 
+-- @return xParameterAutomation or nil if not copied 
 
 function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yield_at)
   TRACE("xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yield_at)",param,seq_range,track_idx,device_idx,scope,yield_at)
@@ -173,13 +178,12 @@ function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yi
 end 
 
 ---------------------------------------------------------------------------------------------------
--- @param track_idx (number)
 -- @param param (renoise.DeviceParameter)
 -- @param seq_range (xSequencerSelection) range that should be cleared
--- @return boolean
+-- @param track_idx (number)
 
-function xParameterAutomation.clear(track_idx,param,seq_range)
-  TRACE("xParameterAutomation.clear(track_idx,param,seq_range)",track_idx,param,seq_range)
+function xParameterAutomation.clear(param,seq_range,track_idx)
+  TRACE("xParameterAutomation.clear(param,seq_range,track_idx)",param,seq_range,track_idx)
   
   assert(type(track_idx)=="number")
   assert(type(param)=="DeviceParameter")
@@ -204,22 +208,6 @@ function xParameterAutomation.clear(track_idx,param,seq_range)
   
 end
 
-
----------------------------------------------------------------------------------------------------
--- swap the specified parameters 
-
-function xParameterAutomation.swap(
-  source_param,
-  source_track_index,
-  source_device_index,
-  dest_param,
-  dest_track_index,
-  dest_device_index,
-  seq_range)
-
-  --  TODO
-
-end 
 
 ---------------------------------------------------------------------------------------------------
 -- apply an instance of xParameterAutomation to a parameter
