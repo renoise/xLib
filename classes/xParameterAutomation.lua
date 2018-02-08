@@ -4,33 +4,13 @@ xLib
 
 --[[--
 
-Create an instance to store automation data from a parameter 
-(think of it like a clipboard for automation data)
-
-Unlike in the Renoise API, automation "points" specifies a continous sequence of values 
-which can go beyond the usual 512 line limit in a pattern. This one instead adds them 
-together in a single stream, making it possible to apply the values to a different offset
-in the timeline. 
-
+Static methods for dealing with parameter automation 
 
 ]]
 
 --=================================================================================================
 
 class 'xParameterAutomation'
-
-xParameterAutomation.SCOPE = {
-  WHOLE_SONG = 1,
-  WHOLE_PATTERN = 2,
-  SELECTION_IN_SEQUENCE = 3,
-  SELECTION_IN_PATTERN = 4,
-}
-
--- configure process slicing (avoid timeouts while processing)
-xParameterAutomation.YIELD_AT = {
-  NONE = 1,
-  PATTERN = 2,
-}
 
 -- the various modes for pasting automation data 
 xParameterAutomation.APPLY_MODE = {
@@ -43,46 +23,6 @@ xParameterAutomation.LINE_BOUNDARY = 0.99609375
 
 
 --=================================================================================================
--- Class methods 
---=================================================================================================
-
-function xParameterAutomation:__init()
-  TRACE("xParameterAutomation:__init()")
-
-  -- (xParameterAutomation.SCOPE) the scope used when capturing the automation
-  -- (shared interface with xParameterAutomation)
-  self.scope = nil
-
-  -- the point values - array of {
-  --  time,     -- point time 
-  --  value,    -- point value
-  --  playmode, -- interpolation type (renoise.PatternTrackAutomation.PLAYMODE_XX)
-  --  } 
-  self.points = {}
-
-end  
-
----------------------------------------------------------------------------------------------------
--- check if the automation specifies any points 
--- (shared interface with xParameterAutomation)
--- @return boolean
-
-function xParameterAutomation:has_points()
-  TRACE("xParameterAutomation:has_points()")
-  
-  return (#self.points > 0) 
-
-end 
-
----------------------------------------------------------------------------------------------------
-
-function xParameterAutomation:__tostring()
-  return type(self)
-    --.. ":seq_range=" .. tostring(self.seq_range)
-    .. ",points=" .. tostring(self.points)
-end
-
---=================================================================================================
 -- Static methods 
 --=================================================================================================
 -- copy automation, while clearing the existing data
@@ -90,14 +30,13 @@ end
 -- @param seq_range (xSequencerSelection) restrict to this range (optional)
 -- @param track_idx, where parameter is located (optional)
 -- @param device_idx, where parameter is located (optional)
--- @param scope (xParameterAutomation.SCOPE)
--- @param yield_at (xParameterAutomation.YIELD_AT), for sliced processing
--- @return xParameterAutomation or nil if not copied 
+-- @param yield_at (xLib.YIELD_AT), for sliced processing
+-- @return xEnvelope or nil if not copied 
 
-function xParameterAutomation.cut(param,seq_range,track_idx,device_idx,scope,yield_at)
-  TRACE("xParameterAutomation.cut(param,seq_range,track_idx,device_idx,scope,yield_at)",param,seq_range,track_idx,device_idx,scope,yield_at)
+function xParameterAutomation.cut(param,seq_range,track_idx,device_idx,yield_at)
+  TRACE("xParameterAutomation.cut(param,seq_range,track_idx,device_idx,yield_at)",param,seq_range,track_idx,device_idx,yield_at)
 
-  local automation = xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yield_at)
+  local automation = xParameterAutomation.copy(param,seq_range,track_idx,device_idx,yield_at)
   if not automation then 
     return nil 
   else
@@ -112,26 +51,23 @@ end
 -- @param seq_range (xSequencerSelection) source range 
 -- @param track_idx, where parameter is located
 -- @param device_idx, where parameter is located
--- @param scope (xParameterAutomation.SCOPE)
--- @param yield_at (xParameterAutomation.YIELD_AT), for sliced processing
--- @return xParameterAutomation or nil if not copied 
+-- @param yield_at (xLib.YIELD_AT), for sliced processing
+-- @return xEnvelope or nil if not copied 
 
-function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yield_at)
-  TRACE("xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yield_at)",param,seq_range,track_idx,device_idx,scope,yield_at)
+function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,yield_at)
+  TRACE("xParameterAutomation.copy(param,seq_range,track_idx,device_idx,yield_at)",param,seq_range,track_idx,device_idx,yield_at)
 
   assert(type(param) == "DeviceParameter")
   assert(type(seq_range) == "table")
   assert(type(track_idx) == "number")  
   assert(type(device_idx) == "number")
-  assert(type(scope) == "number")
 
   -- ?? (AutoMate related) why does "is_automated" not work in headless mode 
   if not param.is_automatable then 
     return nil 
   end 
   
-  local rslt = xParameterAutomation()
-  rslt.scope = scope
+  local rslt = xEnvelope()
 
   local src_track = rns.tracks[track_idx]
   local src_device = src_track.devices[device_idx]
@@ -166,7 +102,7 @@ function xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,yi
     end
     line_offset = line_offset + patt.number_of_lines
 
-    if (yield_at == xParameterAutomation.YIELD_AT.PATTERN) then 
+    if (yield_at == xLib.YIELD_AT.PATTERN) then 
       coroutine.yield()
     end
 
@@ -211,18 +147,18 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- apply an instance of xParameterAutomation to a parameter
--- @param auto (instance of xParameterAutomation), create via copy() or cut()
+-- @param envelope (instance of xEnvelope), create via copy() or cut()
 -- @param apply_mode (xParameterAutomation.APPLY_MODE)
 -- @param param (renoise.DeviceParameter)
 -- @param seq_range (xSequencerSelection) restrict to this range
 -- @param track_idx (number)
--- @param yield_at (xParameterAutomation.YIELD_AT), for sliced processing
+-- @param yield_at (xLib.YIELD_AT), for sliced processing
 -- @return boolean
 
-function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yield_at)
-  TRACE("xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yield_at)",auto,apply_mode,param,seq_range,track_idx,yield_at)
+function xParameterAutomation.paste(envelope,apply_mode,param,seq_range,track_idx,yield_at)
+  TRACE("xParameterAutomation.paste(envelope,apply_mode,param,seq_range,track_idx,yield_at)",envelope,apply_mode,param,seq_range,track_idx,yield_at)
 
-  assert(type(auto)=="xParameterAutomation")
+  assert(type(envelope)=="xEnvelope")
   assert(type(apply_mode)=="number")
   assert(type(param)=="DeviceParameter")
   assert(type(seq_range)=="table")
@@ -250,9 +186,9 @@ function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yi
       end
     end
       
-    for k = point_idx, #auto.points do
+    for k = point_idx, #envelope.points do
       
-      local point = auto.points[k]
+      local point = envelope.points[k]
       local point_time_in_patt = point.time-line_offset+seq_range.start_line
 
       -- function to write a single automation point 
@@ -267,7 +203,7 @@ function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yi
         trk_auto.playmode = point.playmode
       end
 
-      if is_last_seq and (seq_range.end_line < math.floor(point_time_in_patt)) then
+      if is_last_seq and (seq_range.end_line+1 < math.floor(point_time_in_patt)) then
         --print(">>> reached end of range, point_idx: ",point_idx,"point_time_in_patt",point_time_in_patt)
         add_point()
         break          
@@ -280,7 +216,7 @@ function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yi
       else
         add_point()
       end 
-      if (k == #auto.points) then 
+      if (k == #envelope.points) then 
         --print(">>> reached end of automation data",k)
         -- TODO "continous output", repeat from beginning          
         point_idx = k
@@ -290,7 +226,7 @@ function xParameterAutomation.paste(auto,apply_mode,param,seq_range,track_idx,yi
     
     line_offset = line_offset + patt.number_of_lines
 
-    if (yield_at == xParameterAutomation.YIELD_AT.PATTERN) then 
+    if (yield_at == xLib.YIELD_AT.PATTERN) then 
       coroutine.yield()
     end    
 

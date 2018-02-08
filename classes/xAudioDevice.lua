@@ -240,11 +240,10 @@ end
 -- @param track_idx (number, track index 
 -- @param device_idx (number), device index 
 -- @param seq_range (xSequencerSelection), restrict to range - use full range if undefined
--- @param scope (xParameterAutomation.SCOPE)
--- @param yield_at (xAudioDeviceAutomation.YIELD_AT), for sliced processing
+-- @param yield_at (xLib.YIELD_AT), for sliced processing
 
-function xAudioDevice.copy_automation(track_idx,device_idx,seq_range,scope,yield_at)
-  TRACE("xAudioDevice.copy_automation(track_idx,device_idx,seq_range,scope)",track_idx,device_idx,seq_range,scope)
+function xAudioDevice.copy_automation(track_idx,device_idx,seq_range,yield_at)
+  TRACE("xAudioDevice.copy_automation(track_idx,device_idx,seq_range)",track_idx,device_idx,seq_range)
 
   local rns_track = rns.tracks[track_idx]
   assert(rns_track)
@@ -264,22 +263,22 @@ function xAudioDevice.copy_automation(track_idx,device_idx,seq_range,scope,yield
 
   -- configure process slicing: 
   -- "parameter yield" is only relevant for the AudioDevice
-  local param_yield = xParameterAutomation.YIELD_AT.NONE
-  if (yield_at ~= xAudioDeviceAutomation.YIELD_AT.PARAMETER) then
+  local param_yield = xLib.YIELD_AT.NONE
+  if (yield_at ~= xLib.YIELD_AT.PARAMETER) then
     param_yield = yield_at
   end
 
   -- include all automatable parameters 
   for k,param in ipairs(rns_device.parameters) do 
     if param.is_automatable then 
-      local auto = xParameterAutomation.copy(param,seq_range,track_idx,device_idx,scope,param_yield)
+      local env = xParameterAutomation.copy(param,seq_range,track_idx,device_idx,param_yield)
       table.insert(rslt.parameters,{
         name = param.name,
         index = k,
-        automation = auto,
+        envelope = env,
       })
       --print("xAudioDevice.copy_automation - rslt...",rprint(rslt))
-      if (yield_at == xAudioDeviceAutomation.YIELD_AT.PARAMETER) then
+      if (yield_at == xLib.YIELD_AT.PARAMETER) then
         coroutine.yield()
       end
     end
@@ -341,7 +340,7 @@ end
 -- @param device_idx (number)
 -- @param seq_range (xSequencerSelection), output range
 -- @param apply_mode (xParameterAutomation.APPLY_MODE)
--- @param yield_at (xAudioDeviceAutomation.YIELD_AT), for sliced processing
+-- @param yield_at (xLib.YIELD_AT), for sliced processing
 -- @return boolean, false when failed 
 -- @return string, error message when failed
 
@@ -372,8 +371,8 @@ function xAudioDevice.paste_automation(device_auto,track_idx,device_idx,seq_rang
 
   -- configure process slicing: 
   -- "parameter yield" is only relevant for the AudioDevice
-  local param_yield = xParameterAutomation.YIELD_AT.NONE
-  if (yield_at ~= xAudioDeviceAutomation.YIELD_AT.PARAMETER) then
+  local param_yield = xLib.YIELD_AT.NONE
+  if (yield_at ~= xLib.YIELD_AT.PARAMETER) then
     param_yield = yield_at
   end
   
@@ -386,7 +385,7 @@ function xAudioDevice.paste_automation(device_auto,track_idx,device_idx,seq_rang
       -- no automation: continue to clear while in REPLACE mode
       xParameterAutomation.clear(param,seq_range,track_idx)      
     end
-    if (yield_at == xAudioDeviceAutomation.YIELD_AT.PARAMETER) then
+    if (yield_at == xLib.YIELD_AT.PARAMETER) then
       coroutine.yield()
     end  
   end 
