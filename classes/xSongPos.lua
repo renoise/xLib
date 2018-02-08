@@ -171,6 +171,9 @@ function xSongPos.increase_by_lines(num_lines,pos,bounds_mode,loop_boundary,bloc
       seq_idx = seq_idx + 1
       seq_idx,line_idx,done = xSongPos.enforce_boundary("increase",{sequence=seq_idx,line=lines_remaining},bounds_mode,loop_boundary)
       if done then
+        if not seq_idx then 
+          return
+        end
         if (bounds_mode == xSongPos.OUT_OF_BOUNDS.CAP) then
           -- reduce num_lines, or travelled will no longer be correct
           num_lines = num_lines - lines_remaining
