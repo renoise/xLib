@@ -1,16 +1,18 @@
 # Changelog
 
 ## 0.52
-+ Make offline automation classes extend from cPersistence
-+ xEnvelope, refactored from xParameterAutomation (now a static class)
-+ xSongPos: (fix) return when going past song boundary
-+ xLib: specify constants for sliced processing
+
+- Specify dependencies within classes, using `cLib.require()`
+- Make offline automation classes extend from cPersistence
+- xEnvelope, refactored from xParameterAutomation (now a static class)
+- xSongPos: (fix) return when going past song boundary
+- xLib: specify constants for sliced processing
 
 ## 0.51
 
-+ Added classes to deal with offline automation:  
+- Added classes to deal with offline automation:  
   `xAudioDeviceAutomation`, `xParameterAutomation`
-+ Refactored `xSelection` into separate classes:  
+- Refactored `xSelection` into separate classes:  
     `xPatternSelection`, `xMatrixSelection`, `xPatternSelection`, `xSequencerSelection`
     Method are now available as:  
     `xSelection.get_pattern_track` -> `xPatternSelection.get_pattern_track`
@@ -26,9 +28,9 @@
     `xSelection.includes_note_columns` -> `xPatternSelection.includes_note_columns`  
     `xSelection.within_sequence_range` --> `xSequencerSelection.within_range`  
     `xSelection.get_lines_in_range` --> `xSequencerSelection.pluck_from_range`  
-+ Fixed `xTrack.get_next_track`/`get_previous_track`: wrap_pattern option was always applied
+- Fixed `xTrack.get_next_track`/`get_previous_track`: wrap_pattern option was always applied
 
 ## 0.5
 
-* xPhrase: new DOC_PROPS implementation
-* Standalone version
+- xPhrase: new DOC_PROPS implementation
+- Standalone version
