@@ -19,6 +19,14 @@ Static methods for working with pattern-sequence selections
 
 ]]
 
+
+--==============================================================================
+
+cLib.require(_xlibroot.."xSongPos")
+cLib.require(_xlibroot.."xPatternSequencer")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xSequencerSelection'
 
 -- args for shifting position (xSongPos)

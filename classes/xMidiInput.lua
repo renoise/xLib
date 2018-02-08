@@ -40,6 +40,11 @@ The class is implemented with a callback, which will recieve xMidiMessages
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xMidiMessage")
+
+---------------------------------------------------------------------------------------------------
 
 class 'xMidiInput'
 

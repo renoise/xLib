@@ -20,9 +20,11 @@ making it possible to pass around data with higher resolution
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xMessage")
 
 -------------------------------------------------------------------------------
-
 
 class 'xMidiMessage' (xMessage)
 

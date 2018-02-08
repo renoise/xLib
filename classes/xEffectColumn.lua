@@ -22,12 +22,17 @@ represented as string or number, respectively.
 
 --=================================================================================================
 
+--require(_xlibroot.."xLinePattern")
+cLib.require(_xlibroot.."xLinePattern")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xEffectColumn'
 
 --- List of effect-column properties 
 xEffectColumn.tokens = {
-    "number_value","number_string", 
-    "amount_value","amount_string",
+  "number_value","number_string", 
+  "amount_value","amount_string",
 }
 
 --- Properties to use when writing to pattern 

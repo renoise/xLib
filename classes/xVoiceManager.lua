@@ -84,6 +84,10 @@ How to instantiate a copy of this class, and feed xMidiMessages into it:
 
 --=================================================================================================
 
+cLib.require(_xlibroot.."xMidiMessage")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xVoiceManager'
 
 xVoiceManager.EVENTS = {"released","triggered","stolen"}

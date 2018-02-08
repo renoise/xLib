@@ -16,9 +16,12 @@ See also:
 
 --==============================================================================
 
-class 'xOscMessage' (xMessage)
+cLib.require(_xlibroot.."xMessage")
+cLib.require(_xlibroot.."xOscDevice")
 
 --------------------------------------------------------------------------------
+
+class 'xOscMessage' (xMessage)
 
 function xOscMessage:__init(...)
 

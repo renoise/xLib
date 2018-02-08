@@ -8,6 +8,11 @@ Static methods for dealing with Audio Devices.
 
 ]]
 
+--==============================================================================
+
+cLib.require(_xlibroot.."xParameterAutomation")
+
+--------------------------------------------------------------------------------
 
 class 'xAudioDevice'
 

@@ -37,6 +37,10 @@ Disabling strict interpretation will basically set all numeric tags to NUMBER in
 
 --==============================================================================
 
+cLib.require(_xlibroot.."xOscRouter")
+
+--------------------------------------------------------------------------------
+
 class 'xOscPattern' 
 
 xOscPattern.uid_counter = 0
