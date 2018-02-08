@@ -21,6 +21,14 @@ xLib.COLOR_DISABLED = {0x00,0x00,0x00}
 xLib.MIN_OSC_PORT = 1024
 xLib.MAX_OSC_PORT = 65535
 
+-- used for process slicing 
+xLib.YIELD_AT = {
+  NONE = 1,
+  PATTERN = 2,    
+  PARAMETER = 3, 
+}
+
+
 ---------------------------------------------------------------------------------------------------
 -- [Static] Detect if we have a renoise song: in rare cases it can briefly 
 -- go missing (e.g. while loading a song or creating a new document...)
