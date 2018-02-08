@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.52
++ Make offline automation classes extend from cPersistence
++ xEnvelope, refactored from xParameterAutomation (now a static class)
++ xSongPos: (fix) return when going past song boundary
++ xLib: specify constants for sliced processing
+
 ## 0.51
 
 + Added classes to deal with offline automation:  
