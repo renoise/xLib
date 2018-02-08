@@ -121,8 +121,8 @@ end
 -- @param songpos (renoise.SongPos, or songpos-alike table)
 -- @return bool
 
-function xSequencerSelection.is_within_range(seq_range,songpos)
-  TRACE("xSequencerSelection.is_within_range(seq_range,songpos)",seq_range,songpos)
+function xSequencerSelection.within_range(seq_range,songpos)
+  TRACE("xSequencerSelection.within_range(seq_range,songpos)",seq_range,songpos)
 
   assert(type(seq_range)=="table")
   
