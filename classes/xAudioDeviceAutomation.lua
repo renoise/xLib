@@ -41,11 +41,13 @@ function xAudioDeviceAutomation:__init()
   -- }
   self.parameters = {}
 
+  -- number, derived from parameters
+  self.number_of_lines = property(self._get_number_of_lines)
+
 end  
 
 ---------------------------------------------------------------------------------------------------
 -- check if the parameters specify any points 
--- (shared interface with xParameterAutomation)
 -- @return boolean
 
 function xAudioDeviceAutomation:has_points()
@@ -53,15 +55,28 @@ function xAudioDeviceAutomation:has_points()
 
   local has_points = false
   for k,v in ipairs(self.parameters) do
-    print("k,v",k,v,v.envelope)
-    if v.envelope then
-      if v.envelope:has_points() then
-        has_points = true
-        break
-      end
+    if v.envelope and v.envelope:has_points() then
+      has_points = true
+      break
     end
   end
   return has_points
+
+end 
+
+---------------------------------------------------------------------------------------------------
+-- @return number 
+
+function xAudioDeviceAutomation:_get_number_of_lines()
+  TRACE("xAudioDeviceAutomation:_get_number_of_lines()")
+
+  for k,v in ipairs(self.parameters) do
+    if v.envelope and v.envelope:has_points() then
+      return v.envelope.number_of_lines
+    end
+  end
+
+  error("Error: should not get here (automation without points)")
 
 end 
 
