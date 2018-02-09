@@ -36,12 +36,10 @@ function xEnvelope:__init()
   --  } 
   self.points = {}
 
-  -- number, the total length of the envelope (RangeLength in EnvelopeSelectionContent)
-  --self.length = nil
+  -- number, the amount of lines covered if envelope was applied to a pattern
+  self.number_of_lines = property(self._get_number_of_lines)
 
   cPersistence.__init(self)
-
-  oprint(self)
 
 end  
 
@@ -56,6 +54,22 @@ function xEnvelope:has_points()
   return (#self.points > 0) 
 
 end 
+
+---------------------------------------------------------------------------------------------------
+-- amount of lines covered if envelope was applied to a pattern
+-- @return number
+
+function xEnvelope:_get_number_of_lines()
+  TRACE("xEnvelope:_get_number_of_lines()")
+
+  if table.is_empty(self.points) then 
+    return 0
+  end
+
+  local last_time = self.points[#self.points].time 
+  return cLib.round_value(last_time-1)
+
+end
 
 ---------------------------------------------------------------------------------------------------
 
