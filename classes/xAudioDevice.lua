@@ -384,11 +384,11 @@ function xAudioDevice.paste_automation(device_auto,track_idx,device_idx,seq_rang
   -- apply the individual parameters
   for k,auto_param in ipairs(device_auto.parameters) do 
     local dest_param = rns_device.parameters[auto_param.index]
-    if (auto_param.automation) then 
-      xParameterAutomation.paste(auto_param.automation,apply_mode,dest_param,seq_range,track_idx,param_yield)
+    if (auto_param.envelope) then 
+      xParameterAutomation.paste(auto_param.envelope,apply_mode,dest_param,seq_range,track_idx,param_yield)
     elseif (apply_mode == xParameterAutomation.APPLY_MODE.REPLACE) then
       -- no automation: continue to clear while in REPLACE mode
-      xParameterAutomation.clear(param,seq_range,track_idx)      
+      xParameterAutomation.clear(dest_param,seq_range,track_idx)      
     end
     if (yield_at == xLib.YIELD_AT.PARAMETER) then
       coroutine.yield()
