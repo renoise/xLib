@@ -28,8 +28,6 @@ xAudioDeviceAutomation.__PERSISTENCE = {
 function xAudioDeviceAutomation:__init()
   TRACE("xAudioDeviceAutomation:__init()")
 
-  cPersistence.__init(self)
-
   -- string, type of device (e.g. "Audio/Effects/Native/*XY Pad")
   self.device_path = nil
 

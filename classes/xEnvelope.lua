@@ -39,8 +39,6 @@ function xEnvelope:__init()
   -- number, the amount of lines covered if envelope was applied to a pattern
   self.number_of_lines = property(self._get_number_of_lines)
 
-  cPersistence.__init(self)
-
 end  
 
 ---------------------------------------------------------------------------------------------------
