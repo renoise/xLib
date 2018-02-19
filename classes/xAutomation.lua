@@ -8,6 +8,13 @@ Easy control of parameter automation.
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xPlayPos")
+cLib.require(_xlibroot.."xStreamPos")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xAutomation'
 
 xAutomation.FOLLOW_MODE = {

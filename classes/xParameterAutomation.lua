@@ -8,12 +8,12 @@ Static methods for dealing with parameter automation
 
 ]]
 
---==============================================================================
+--=================================================================================================
 
-require(_xlibroot.."xEnvelope")
-require(_xlibroot.."xPatternSequencer")
+cLib.require(_xlibroot.."xEnvelope")
+cLib.require(_xlibroot.."xPatternSequencer")
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 
 class 'xParameterAutomation'
 

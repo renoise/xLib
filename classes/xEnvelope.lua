@@ -14,7 +14,7 @@ Note: the class is modelled over the Renoise EnvelopeSelectionContent,
 
 --==============================================================================
 
-require(_clibroot.."cPersistence")
+cLib.require(_clibroot.."cPersistence")
 
 ---------------------------------------------------------------------------------------------------
 
