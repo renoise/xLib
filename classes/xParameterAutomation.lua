@@ -25,7 +25,7 @@ xParameterAutomation.APPLY_MODE = {
 
 -- the exact point.time where point line up at the boundary
 xParameterAutomation.LINE_BOUNDARY = 0.99609375
-
+xParameterAutomation.LINE_BOUNDARY_INV = 1 - xParameterAutomation.LINE_BOUNDARY
 
 --=================================================================================================
 -- Static methods 
