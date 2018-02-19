@@ -12,13 +12,15 @@ This class can track playback progression in a song.
 
 Create an instance, and supply it with a steady flow of song-position changes (idle loop). 
 
-See also:
-@{xPlayPos}
-@{xSongPos}
-@{xBlockLoop}
-
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xPlayPos")
+cLib.require(_xlibroot.."xSongPos")
+cLib.require(_xlibroot.."xBlockLoop")
+
+---------------------------------------------------------------------------------------------------
 
 class 'xStreamPos'
 

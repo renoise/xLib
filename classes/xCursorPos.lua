@@ -13,6 +13,9 @@ Describes the position of the edit cursor within the project timeline.
 --=================================================================================================
 
 cLib.require(_xlibroot.."xLine")
+cLib.require(_xlibroot.."xTrack")
+cLib.require(_xlibroot.."xColumns")
+cLib.require(_xlibroot.."xPatternPos")
 
 ---------------------------------------------------------------------------------------------------
 

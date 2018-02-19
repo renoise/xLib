@@ -23,6 +23,10 @@ on the values returned from the API, as those can change during the evaluation o
 
 --=================================================================================================
 
+cLib.require(_xlibroot.."xPatternSequencer")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xBlockLoop'
 
 xBlockLoop.COEFFS_ALL = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16}
