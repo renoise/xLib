@@ -17,6 +17,14 @@ See also:
 
 ]]
 
+--=================================================================================================
+
+cLib.require (_xlibroot.."cTable")
+cLib.require (_xlibroot.."xPatternSelection")
+cLib.require (_xlibroot.."xNoteColumn")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xVoiceRunner'
 
 xVoiceRunner.COLLECT_MODE = {

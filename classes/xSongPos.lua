@@ -18,6 +18,13 @@ but also "SongPos-alike" objects - tables that contain a line and sequence prope
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xPatternSequencer")
+cLib.require(_xlibroot.."xBlockLoop")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xSongPos'
 
 --- How to deal with sequence (song) boundaries

@@ -21,6 +21,10 @@ http://forum.renoise.com/index.php/topic/26329-the-api-wishlist-thread/?p=221484
 
 --==============================================================================
 
+cLib.require(_xlibroot.."xPhrase")
+
+--------------------------------------------------------------------------------
+
 class 'xPhraseManager'
 
 

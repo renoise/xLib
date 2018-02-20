@@ -14,7 +14,12 @@ This is a supporting class for xRules
 
 ]]
 
-require (_clibroot.."cFilesystem")
+--=================================================================================================
+
+cLib.require (_clibroot.."cFilesystem")
+cLib.require (_xlibroot.."xRule")
+
+---------------------------------------------------------------------------------------------------
 
 class 'xRuleset'
 

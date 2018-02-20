@@ -14,6 +14,13 @@ See also:
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xVoiceRunner")
+cLib.require(_xlibroot.."xColumns")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xVoiceSorter'
 
 xVoiceSorter.SORT_MODES = {"Low → High","High → Low",}

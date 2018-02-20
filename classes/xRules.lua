@@ -16,13 +16,21 @@ Renoise tools page (http://www.renoise.com/tools/xrules). The tool adds a
 visual interface, device management and more. 
 
 
-## See also
-@{xRuleset}  - (supporting class)
-@{xRule}     - (supporting class)
-
-
 ]]
 
+--=================================================================================================
+
+cLib.require (_xlibroot.."xRule")
+cLib.require (_xlibroot.."xRuleset")
+cLib.require (_xlibroot.."xMidiInput")
+cLib.require (_xlibroot.."xMidiMessage")
+cLib.require (_xlibroot.."xOscMessage")
+cLib.require (_xlibroot.."xOscPattern")
+cLib.require (_xlibroot.."xOscClient")
+cLib.require (_xlibroot.."xOscRouter")
+cLib.require (_xlibroot.."xAutomation")
+
+---------------------------------------------------------------------------------------------------
 
 class 'xRules'
 

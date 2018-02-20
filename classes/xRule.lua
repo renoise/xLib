@@ -1,6 +1,6 @@
---[[============================================================================
+--[[===============================================================================================
 xRule
-============================================================================]]--
+===============================================================================================]]--
 
 --[[--
 
@@ -14,8 +14,25 @@ A rule contains two main elements:
 
 ]]
 
-require (_clibroot.."cSandbox")
-require (_xlibroot.."xRules")
+--=================================================================================================
+
+cLib.require (_clibroot.."cSandbox")
+cLib.require (_xlibroot.."xRules")
+cLib.require (_xlibroot.."xLib")
+cLib.require (_xlibroot.."xTrack")
+cLib.require (_xlibroot.."xPhraseManager")
+cLib.require (_xlibroot.."xScale")
+cLib.require (_xlibroot.."xAutomation")
+cLib.require (_xlibroot.."xAudioDevice")
+cLib.require (_xlibroot.."xPlayPos")
+cLib.require (_xlibroot.."xParameter")
+cLib.require (_xlibroot.."xTransport")
+cLib.require (_xlibroot.."xOscPattern")
+cLib.require (_xlibroot.."xMidiMessage")
+cLib.require (_xlibroot.."xOscMessage")
+cLib.require (_xlibroot.."xRuleset")
+
+---------------------------------------------------------------------------------------------------
 
 class 'xRule'
 
@@ -251,8 +268,7 @@ xRule.ACTION_BASETYPE = {
 }
 
 
-
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 
 function xRule:__init(def)
 
@@ -537,7 +553,7 @@ function xRule:__init(def)
       access = function(env) return xAudioDevice end,
     },
     ["xPhraseManager"] = {
-      access = function(env) return xAudioDevice end,
+      access = function(env) return xPhraseManager end,
     },
 
     -- xMessage 

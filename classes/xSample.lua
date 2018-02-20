@@ -10,10 +10,16 @@ Static methods for working with renoise.Sample objects
 
 ]]
 
-require (_clibroot.."cReflection")
-require (_xlibroot.."xSampleMapping")
-require (_xlibroot.."xPhrase")
-require (_xlibroot.."xNoteColumn")
+--=================================================================================================
+
+cLib.require (_clibroot.."cReflection")
+cLib.require (_xlibroot.."xSampleMapping")
+cLib.require (_xlibroot.."xPhrase")
+cLib.require (_xlibroot.."xSongPos")
+cLib.require (_xlibroot.."xLinePattern")
+cLib.require (_xlibroot.."xNoteColumn")
+
+---------------------------------------------------------------------------------------------------
 
 class 'xSample'
 

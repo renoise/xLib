@@ -31,6 +31,16 @@ generates content that should be output at a later point in time.
 
 --=================================================================================================
 
+cLib.require(_xlibroot.."xLine")
+cLib.require(_xlibroot.."xSongPos")
+cLib.require(_xlibroot.."xStreamPos")
+cLib.require(_xlibroot.."xAutomation")
+cLib.require(_xlibroot.."xNoteColumn")
+cLib.require(_xlibroot.."xLinePattern")
+cLib.require(_xlibroot.."xPatternSequencer")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xStreamBuffer'
 
 --- choose a mute mode
