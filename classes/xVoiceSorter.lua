@@ -16,6 +16,7 @@ See also:
 
 --=================================================================================================
 
+cLib.require(_clibroot.."cTable")
 cLib.require(_xlibroot.."xVoiceRunner")
 cLib.require(_xlibroot.."xColumns")
 

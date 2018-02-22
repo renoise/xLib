@@ -8,7 +8,7 @@ Create an instance to store audio-parameter automation data for an entire device
 
 ]]
 
---==============================================================================
+--=================================================================================================
 
 cLib.require(_clibroot.."cPersistence")
 cLib.require(_xlibroot.."xAudioDevice")

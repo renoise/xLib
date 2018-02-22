@@ -17,6 +17,7 @@ A rule contains two main elements:
 --=================================================================================================
 
 cLib.require (_clibroot.."cSandbox")
+cLib.require (_clibroot.."cString")
 cLib.require (_xlibroot.."xRules")
 cLib.require (_xlibroot.."xLib")
 cLib.require (_xlibroot.."xTrack")
