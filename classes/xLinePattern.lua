@@ -344,6 +344,7 @@ end
 --  index: note/effect column index (across visible columns)
 --  value: number 
 --  string: string 
+--  type: xEffectColumn.TYPE
 -- }>
 
 function xLinePattern.get_effect_command(track,line,fx_type,notecol_idx,visible_only)
@@ -373,6 +374,7 @@ end
 function xLinePattern.get_effect_subcolumn_command(track,line,fx_type,notecol_idx,visible_only)
   TRACE("xLinePattern.get_effect_subcolumn_command(track,line,fx_type,notecol_idx,visible_only)",track,line,fx_type,notecol_idx,visible_only)
 
+    -- TODO 
     error("Not yet implemented")
 
 end 
@@ -397,7 +399,8 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
             matches:insert({
               index = col_idx,
               value = notecol.effect_amount_value,
-              string = notecol.effect_amount_string
+              string = notecol.effect_amount_string,
+              type = xEffectColumn.TYPE.EFFECT_NOTECOLUMN,
             })
           end
         end
@@ -414,7 +417,8 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
         matches:insert({
           index = col_idx,
           value = fxcol.amount_value,
-          string = fxcol.amount_string
+          string = fxcol.amount_string,
+          type = xEffectColumn.TYPE.EFFECT_COLUMN,
         })
       end
       col_idx = col_idx + 1

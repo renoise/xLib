@@ -72,6 +72,13 @@ xEffectColumn.SUPPORTED_EFFECT_CHARS = {
   10,11,12,13,14,16,18,19,21,22,23,25,26,27,28,29,30,31,32,33,34,35       
 }
 
+--- The possible column types 
+xEffectColumn.TYPE = {
+  EFFECT_COLUMN = 1,      -- two-digit command in effect column 
+  EFFECT_SUBCOLUMN = 2,   -- single-digit command in effect sub-column 
+  EFFECT_NOTECOLUMN = 3,  -- two-digit command in note-effect column
+}
+
 ---------------------------------------------------------------------------------------------------
 -- [Constructor] accepts a single argument for initializing the class  
 -- @param args (table), descriptor
