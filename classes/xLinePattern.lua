@@ -430,6 +430,92 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
 end 
 
 ---------------------------------------------------------------------------------------------------
+-- Get the first available effect column 
+-- 
+
+function xLinePattern.get_available_effect_column(track,line,visible_only)
+  TRACE("xLinePattern.get_available_effect_column(track,line,visible_only)",track,line,visible_only)
+
+  local col_idx = 1
+  
+  if track.sample_effects_column_visible then
+    for k,notecol in ipairs(line.note_columns) do
+      if visible_only and (k > track.visible_note_columns) then
+        break
+      else
+        if (notecol.effect_number_value == 0 and notecol.effect_amount_value == 0) then
+          return {
+            index = col_idx,
+            type = xEffectColumn.TYPE.EFFECT_NOTECOLUMN,
+          }
+        end
+        col_idx = col_idx + 1        
+      end
+    end
+  end 
+
+  for k,fxcol in ipairs(line.effect_columns) do
+    if visible_only and (k > track.visible_effect_columns) then 
+      break 
+    else
+      if fxcol.is_empty then
+        return {
+          index = col_idx,
+          type = xEffectColumn.TYPE.EFFECT_COLUMN,
+        }
+      end
+      col_idx = col_idx + 1      
+    end
+  end
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- Write command into effect-column or note-effects column
+-- @param track (renoise.Track)
+-- @param line (renoise.PatternLine)
+-- @param fx_number (string) - two-digit string 
+-- @param fx_amount (number) - fx value 
+-- @param column_index (number) - fx-col index (can refer to note-col if sample-effects are visible)
+
+function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,column_index)
+  TRACE("xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,column_index)",track,line,fx_number,fx_amount,column_index)
+  
+  if (not column_index) then 
+    -- use first available effect column 
+    local visible_only = true
+    local rslt = xLinePattern.get_available_effect_column(track,line,visible_only)
+    if rslt then 
+      column_index = rslt.index 
+    else 
+      -- attempt to allocate another effect column 
+      if (track.visible_effect_columns < track.max_effect_columns) then 
+        local visible_cols = track.visible_effect_columns + 1 
+        track.visible_effect_columns = visible_cols
+        column_index = visible_cols
+      end
+    end
+  end 
+  print("*** column_index",column_index)
+  local note_fx_cols = track.sample_effects_column_visible and track.visible_note_columns or 0
+  print("*** note_fx_cols",note_fx_cols)
+  if (column_index > note_fx_cols) then 
+    -- use effect column 
+    local column = line.effect_columns[column_index-note_fx_cols]
+    print("column effect_columns",column)
+    column.number_string = fx_number
+    column.amount_value = math.floor(fx_amount)
+  else
+    -- use sample effect column 
+    local column = line.note_columns[column_index]
+    print("column note_columns",column)
+    column.effect_number_string = fx_number
+    column.effect_amount_value = math.floor(fx_amount)
+  end
+    
+end
+
+---------------------------------------------------------------------------------------------------
 -- [Static] Get midi command from line
 -- (look in last note-column, panning + first effect column)
 -- @return xMidiCommand or nil if not found
