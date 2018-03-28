@@ -19,6 +19,7 @@ TODO
 cLib.require(_clibroot.."cDocument")
 cLib.require(_clibroot..'cFilesystem')
 cLib.require(_xlibroot.."xNoteColumn")
+cLib.require(_xlibroot.."xSongPos")
 cLib.require(_xlibroot.."xTrack")
 
 ---------------------------------------------------------------------------------------------------
@@ -202,6 +203,51 @@ function xPhrase.replace_sample_index(phrase,idx_from,idx_to)
   end
 
 end
+
+---------------------------------------------------------------------------------------------------
+-- Resolve the "internal" line number in a phrase from two external positions
+-- @param phrase (renoise.InstrumentPhrase)
+-- @param trigger_pos (SongPos) the position where the note got triggered
+-- @param cursor_pos (SongPos) the position that we want to resolve 
+-- @param [line_offset] (number) optional line offset 
+-- @return number 
+
+function xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset)
+  TRACE("xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset)",phrase,trigger_pos,cursor_pos,line_offset)
+  
+  line_offset = line_offset and line_offset or 0
+  
+  local line_diff = xSongPos.get_line_diff(trigger_pos,cursor_pos)
+
+  -- TODO a key-mapped phrase can specify different LPB 
+  local phrase_lpb = phrase.lpb 
+  local lpb_factor = phrase_lpb / rns.transport.lpb
+
+  -- line number (natural number + fractional part)
+  local line_in_phrase = line_offset + line_diff * lpb_factor
+  local line_in_phrase_fraction = cLib.fraction(line_in_phrase)
+  line_in_phrase = math.floor(line_in_phrase)+1
+
+  if not phrase.looping then 
+    -- unlooped phrase : fail if beyond end 
+    if (line_in_phrase > phrase.number_of_lines) then 
+      return nil, "Can't slice phrase after the last line has been reached"
+    end
+  else 
+    -- looped: apply as modulo after initial lines 
+    if (line_in_phrase >= phrase.loop_end) then 
+      local loop_size = phrase.loop_end - phrase.loop_start
+      line_in_phrase = (line_in_phrase % loop_size)
+      if (line_in_phrase == phrase.loop_end) then 
+        line_in_phrase = phrase.loop_start
+      end
+      line_in_phrase = line_in_phrase + phrase.loop_start-1
+    end  
+  end
+
+  return line_in_phrase+line_in_phrase_fraction
+  
+end  
 
 --------------------------------------------------------------------------------
 -- check if note is referring to keymapped phrase
