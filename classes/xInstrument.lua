@@ -1,6 +1,6 @@
---[[============================================================================
+--[[===============================================================================================
 xInstrument
-============================================================================]]--
+===============================================================================================]]--
 
 --[[--
 
@@ -12,7 +12,7 @@ Static methods for dealing with renoise.Instrument
 
 class 'xInstrument'
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- Set the instrument to use the previous scale 
 -- @param instr, renoise.Instrument
 
@@ -29,7 +29,7 @@ function xInstrument.set_previous_scale(instr)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- Set the instrument to use the next scale 
 -- @param instr, renoise.Instrument
 
@@ -46,7 +46,7 @@ function xInstrument.set_next_scale(instr)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- Set the instrument to use the a specific scale 
 -- @param instr, renoise.Instrument
 -- @param scale_idx, number
@@ -64,7 +64,7 @@ function xInstrument.set_scale_by_index(instr,scale_idx)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Test whether the instrument contain sample slices
 -- @param instr (renoise.Instrument)
 -- @return bool
@@ -78,7 +78,7 @@ function xInstrument.is_sliced(instr)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Test whether the keyzone can be reached with the instrument
 -- (running in program mode + sample columns)
 -- @param instr (renoise.Instrument)
@@ -104,7 +104,7 @@ function xInstrument.is_keyzone_available(instr)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Test whether instrument seems to be triggering a phrase
 -- @param instr (renoise.Instrument)
 -- @return boolean
@@ -115,7 +115,7 @@ function xInstrument.is_triggering_phrase(instr)
   if (#instr.phrases == 0) then
     return false
   end
-  
+
   if (instr.phrase_playback_mode == renoise.Instrument.PHRASES_OFF) then
     return false
   end
@@ -130,7 +130,7 @@ function xInstrument.is_triggering_phrase(instr)
 
 end
 
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Figure out the phrase playback mode
 -- @return boolean
 
@@ -145,7 +145,7 @@ function xInstrument.get_phrase_playback_enabled(instr)
   end
 end
 
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Set the phrase playback mode
 -- @return boolean
 
@@ -162,7 +162,7 @@ function xInstrument.set_phrase_playback_enabled(instr,bool)
   end
 end
 
--------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Detect if there is a slice marker *approximately* at the sample pos
 -- @return boolean, [error message (string)]
 
@@ -187,7 +187,7 @@ function xInstrument.get_slice_marker_at_pos(instr,pos,threshold)
 end
 
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Figure out which samples are mapped to the provided note
 -- @return table<number> (sample indices)
 
@@ -205,7 +205,7 @@ function xInstrument.get_samples_mapped_to_note(instr,note)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Return the slice markers associated with a given sample 
 -- @param instr (renoise.Instrument)
 -- @param sample_idx (number)
@@ -223,7 +223,7 @@ function xInstrument.get_slice_marker_by_sample_idx(instr,sample_idx)
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Perform a simple autocapture and return the instrument 
 -- @return int (instrument index) or nil 
 
@@ -235,7 +235,7 @@ function xInstrument.autocapture()
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Locate the first empty instrument in instrument list
 -- @return int or nil 
 
@@ -250,7 +250,27 @@ function xInstrument.get_first_available()
 
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
+-- [Static] this is a workaround for the missing 'selected_phrase_index' in instruments. 
+-- Will temporarily select the indicated instrument and revert the selected once done. 
+-- See also: 
+-- http://forum.renoise.com/index.php/topic/26329-the-api-wishlist-thread/?p=221484
+-- @return int or nil 
+
+function xInstrument.get_selected_phrase_index(instr_idx)
+  TRACE("xInstrument.get_selected_phrase_index(instr_idx)",instr_idx)
+
+  local phrase_idx = nil
+  if (#rns.instruments >= instr_idx) then 
+    local cached_instr_idx = rns.selected_instrument_index
+    rns.selected_instrument_index = instr_idx 
+    phrase_idx = rns.selected_phrase_index 
+    rns.selected_instrument_index = cached_instr_idx 
+  end
+  return phrase_idx
+end  
+
+---------------------------------------------------------------------------------------------------
 -- [Static] Resolve the assigned track (midi input properties)
 -- @param instr (renoise.Instrument)
 -- @return number, track index
@@ -265,7 +285,7 @@ function xInstrument.resolve_midi_track(instr)
   end
 end
 
---------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------
 -- [Static] Check if instrument contains any samples, modulation etc. 
 -- @param instr (renoise.Instrument)
 -- @return bool
@@ -287,9 +307,12 @@ function xInstrument.is_empty(instr)
 
 end
 
---------------------------------------------------------------------------------
--- [Static] TODO reset sample-based part of instrument 
+---------------------------------------------------------------------------------------------------
+-- [Static] reset sample-based part of instrument 
 
 function xInstrument.reset_sampler()
 
+  -- TODO 
+  error("Not implemented")
+  
 end
