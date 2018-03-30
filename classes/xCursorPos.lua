@@ -47,7 +47,7 @@ function xCursorPos:__init(...)
   --- number, track index 
   self.track = args.track
 
-  --- number, line index
+  --- number, line index (NB: can contain fractional part)
   self.line = args.line
 
   --- number, note/effect column index (across visible columns)
