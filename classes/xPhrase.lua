@@ -207,13 +207,18 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Resolve the "internal" line number in a phrase from two external positions
 -- @param phrase (renoise.InstrumentPhrase)
--- @param trigger_pos (SongPos) the position where the note got triggered
--- @param cursor_pos (SongPos) the position that we want to resolve 
+-- @param trigger_pos (xCursorPos) the position where the note got triggered
+-- @param cursor_pos (SongPos/alike) the position that we want to resolve 
 -- @param [line_offset] (number) optional line offset 
--- @return number 
+-- @param [notecol] (renoise.NoteColumn) triggering note - if undefined, resolve from trigger_pos
+-- @return number or nil if failed 
+-- @return string, error message when failed 
 
-function xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset)
-  TRACE("xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset)",phrase,trigger_pos,cursor_pos,line_offset)
+function xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset,notecol)
+  TRACE("xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset,notecol)",phrase,trigger_pos,cursor_pos,line_offset,notecol)
+  
+  assert(type(phrase),"InstrumentPhrase")
+  assert(type(trigger_pos),"xCursorPos")
   
   line_offset = line_offset and line_offset or 0
   
@@ -222,11 +227,37 @@ function xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset)
   -- TODO a key-mapped phrase can specify different LPB 
   local phrase_lpb = phrase.lpb 
   local lpb_factor = phrase_lpb / rns.transport.lpb
-
+  
   -- line number (natural number + fractional part)
   local line_in_phrase = line_offset + line_diff * lpb_factor
   local line_in_phrase_fraction = cLib.fraction(line_in_phrase)
   line_in_phrase = math.floor(line_in_phrase)+1
+  
+  -- resolve delay command from note-column 
+  local applied_delay = nil
+  if not notecol then 
+    local patt_idx,patt,track,ptrack,line = trigger_pos:resolve()
+    if not track then 
+      return nil,"Could not resolve track"                    
+    end
+    -- only applied when visible 
+    if track.delay_column_visible then    
+      if not line then
+        return nil,"Could not resolve pattern-line"                    
+      end
+      notecol = line.note_columns[trigger_pos.column]
+    end
+  end
+  if not notecol then
+    return nil, "Could not resolve note-column"
+  end
+  applied_delay = notecol.delay_value
+  
+  -- if a delay command is applied, roll back line 
+  if applied_delay and (applied_delay > 0) then 
+    local line_diff = lpb_factor * (applied_delay / 255)
+    line_in_phrase = line_in_phrase - line_diff
+  end
 
   if not phrase.looping then 
     -- unlooped phrase : fail if beyond end 
@@ -234,7 +265,8 @@ function xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset)
       return nil, "Can't slice phrase after the last line has been reached"
     end
   else 
-    -- looped: apply as modulo after initial lines 
+    -- compute position changes caused by looping 
+    -- (apply as modulo after initial lines)
     if (line_in_phrase >= phrase.loop_end) then 
       local loop_size = phrase.loop_end - phrase.loop_start
       line_in_phrase = (line_in_phrase % loop_size)
