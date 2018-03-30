@@ -568,6 +568,10 @@ end
 function xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_sxx)
   TRACE("xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_sxx)",sample,trigger_pos,end_pos,ignore_sxx)
 
+  assert(type(sample)=="Sample")
+  assert(type(trigger_pos)=="xCursorPos")
+  assert(type(end_pos)=="xCursorPos")
+  
   local patt_idx,patt,track,ptrack,line = trigger_pos:resolve()
   if not line then
     return false,"Could not resolve pattern-line"                    
@@ -588,7 +592,7 @@ function xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_s
     end
   end
   -- precise position #2: add fractional line 
-  line_diff = line_diff + end_pos.fraction
+  line_diff = line_diff + cLib.fraction(end_pos.line)
 
   local frame = xSample.get_buffer_frame_by_line(sample,line_diff)
   frame = xSample.get_transposed_frame(notecol.note_value,frame,sample)
@@ -599,7 +603,7 @@ function xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_s
     if not table.is_empty(matched_sxx) then 
       -- the last matched value is the one affecting playback 
       local total_frames = sample.sample_buffer.number_of_frames       
-      local applied_sxx = matched_sxx[#matched_sxx].value
+      local applied_sxx = matched_sxx[#matched_sxx].amount_value
       frame = frame + ((total_frames/256) * applied_sxx)
     end 
   end 
