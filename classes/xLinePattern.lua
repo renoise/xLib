@@ -131,11 +131,11 @@ end
 
 function xLinePattern:do_write(sequence,line,track_idx,phrase,tokens,include_hidden,expand_columns,clear_undefined)
 
-  local rns_line,patt_idx,rns_patt,rns_track,rns_ptrack
+  local rns_line,_patt_idx,_rns_patt,rns_track,_rns_ptrack
   local rns_track_or_phrase
 
   if track_idx then -- pattern
-    rns_line,patt_idx,rns_patt,rns_track,rns_ptrack = 
+    rns_line,_patt_idx,_rns_patt,rns_track,_rns_ptrack = 
       xLine.resolve_pattern_line(sequence,line,track_idx)
     rns_track_or_phrase = rns_track
   else -- phrase
@@ -341,10 +341,10 @@ end
 -- @param notecol_idx (number), note-column index
 -- @param [visible_only] (boolean), restrict search to visible columns in track 
 -- @return table<{
---  index: note/effect column index (across visible columns)
---  value: number 
---  string: string 
---  type: xEffectColumn.TYPE
+--  column_index: note/effect column index (across visible columns)
+--  column_type: xEffectColumn.TYPE
+--  amount_value: number 
+--  amount_string: string 
 -- }>
 
 function xLinePattern.get_effect_command(track,line,fx_type,notecol_idx,visible_only)
@@ -382,6 +382,12 @@ end
 ---------------------------------------------------------------------------------------------------
 -- [Static] Get effect command using two-digit syntax (effect-column)
 -- (look through note effect-columns and effect-columns)
+-- @param track (renoise.Track)
+-- @param line (renoise.PatternLine)
+-- @param fx_type (string), two-digit string, e.g. "0S"
+-- @param [notecol_idx] (number), restrict search to this note-column 
+-- @param [visible_only] (boolean), restrict search to visible note/effect-columns
+-- @return table - see get_effect_command()
 
 function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,visible_only)
   TRACE("xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,visible_only)",track,line,fx_type,notecol_idx,visible_only)
@@ -394,13 +400,14 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
       if visible_only and (k > track.visible_note_columns) then
         break
       else
-        if (k == notecol_idx) then 
+        local do_search = not notecol_idx and true or (k == notecol_idx) 
+        if do_search then 
           if (notecol.effect_number_string == fx_type) then
             matches:insert({
-              index = col_idx,
-              value = notecol.effect_amount_value,
-              string = notecol.effect_amount_string,
-              type = xEffectColumn.TYPE.EFFECT_NOTECOLUMN,
+              column_index = col_idx,
+              column_type = xEffectColumn.TYPE.EFFECT_NOTECOLUMN,
+              amount_value = notecol.effect_amount_value,
+              amount_string = notecol.effect_amount_string,
             })
           end
         end
@@ -415,10 +422,10 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
     else
       if (fxcol.number_string == fx_type) then
         matches:insert({
-          index = col_idx,
-          value = fxcol.amount_value,
-          string = fxcol.amount_string,
-          type = xEffectColumn.TYPE.EFFECT_COLUMN,
+          column_index = col_idx,
+          column_type = xEffectColumn.TYPE.EFFECT_COLUMN,
+          amount_value = fxcol.amount_value,
+          amount_string = fxcol.amount_string,
         })
       end
       col_idx = col_idx + 1
@@ -431,10 +438,17 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- Get the first available effect column 
--- 
+-- @param track (renoise.Track)
+-- @param line (renoise.PatternLine)
+-- @param [visible_only] (boolean), restrict search to visible columns in track 
+-- @param [from_column] (number), which column to start search from 
+-- @return {
+--    column_index: number, note/effect column index (across visible columns)
+--    column_type: xEffectColumn.TYPE  
+--  }
 
-function xLinePattern.get_available_effect_column(track,line,visible_only)
-  TRACE("xLinePattern.get_available_effect_column(track,line,visible_only)",track,line,visible_only)
+function xLinePattern.get_available_effect_column(track,line,visible_only,from_column)
+  TRACE("xLinePattern.get_available_effect_column(track,line,visible_only,from_column)",track,line,visible_only,from_column)
 
   local col_idx = 1
   
@@ -443,10 +457,13 @@ function xLinePattern.get_available_effect_column(track,line,visible_only)
       if visible_only and (k > track.visible_note_columns) then
         break
       else
-        if (notecol.effect_number_value == 0 and notecol.effect_amount_value == 0) then
+        if (from_column and col_idx < from_column) then 
+          -- do nothing 
+        elseif (notecol.effect_number_value == 0 and notecol.effect_amount_value == 0) then
+          -- found empty sample-effect-column 
           return {
-            index = col_idx,
-            type = xEffectColumn.TYPE.EFFECT_NOTECOLUMN,
+            column_index = col_idx,
+            column_type = xEffectColumn.TYPE.EFFECT_NOTECOLUMN,
           }
         end
         col_idx = col_idx + 1        
@@ -458,10 +475,13 @@ function xLinePattern.get_available_effect_column(track,line,visible_only)
     if visible_only and (k > track.visible_effect_columns) then 
       break 
     else
-      if fxcol.is_empty then
+      if (from_column and col_idx < from_column) then 
+        -- do nothing 
+      elseif fxcol.is_empty then
+        -- found empty effect-column 
         return {
-          index = col_idx,
-          type = xEffectColumn.TYPE.EFFECT_COLUMN,
+          column_index = col_idx,
+          column_type = xEffectColumn.TYPE.EFFECT_COLUMN,
         }
       end
       col_idx = col_idx + 1      
@@ -484,31 +504,44 @@ function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,c
   if (not column_index) then 
     -- use first available effect column 
     local visible_only = true
-    local rslt = xLinePattern.get_available_effect_column(track,line,visible_only)
-    if rslt then 
-      column_index = rslt.index 
+    -- check if the command is already present
+    local notecol_idx = -1 -- only match effect-columns
+    local rslt = xLinePattern.get_effect_column_command(track,line,fx_number,notecol_idx,visible_only)
+    print("rslt",rprint(rslt))
+    if not table.is_empty(rslt) 
+      and rslt[1].value == fx_amount
+    then 
+      -- command already exists
+      return
     else 
-      -- attempt to allocate another effect column 
-      if (track.visible_effect_columns < track.max_effect_columns) then 
-        local visible_cols = track.visible_effect_columns + 1 
-        track.visible_effect_columns = visible_cols
-        column_index = visible_cols
+      local from_column = track.visible_note_columns+1
+      local rslt = xLinePattern.get_available_effect_column(track,line,visible_only,from_column)
+      if rslt then 
+        column_index = rslt.column_index 
+      else 
+        
+        -- finally, attempt to allocate another effect column 
+        if (track.visible_effect_columns < track.max_effect_columns) then 
+          local visible_cols = track.visible_effect_columns + 1 
+          track.visible_effect_columns = visible_cols
+          column_index = track.sample_effects_column_visible 
+            and track.visible_note_columns + visible_cols
+            or visible_cols
+        end
       end
-    end
-  end 
-  print("*** column_index",column_index)
+    end 
+        
+  end
+    
   local note_fx_cols = track.sample_effects_column_visible and track.visible_note_columns or 0
-  print("*** note_fx_cols",note_fx_cols)
   if (column_index > note_fx_cols) then 
     -- use effect column 
     local column = line.effect_columns[column_index-note_fx_cols]
-    print("column effect_columns",column)
     column.number_string = fx_number
     column.amount_value = math.floor(fx_amount)
   else
     -- use sample effect column 
     local column = line.note_columns[column_index]
-    print("column note_columns",column)
     column.effect_number_string = fx_number
     column.effect_amount_value = math.floor(fx_amount)
   end
