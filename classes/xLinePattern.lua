@@ -461,8 +461,6 @@ function xLinePattern.get_available_effect_column(track,line,visible_only,from_c
       if visible_only and (k > track.visible_note_columns) then
         break
       else
-        print(">>> notecol.effect_number_value",notecol.effect_number_value)
-        print(">>> notecol.effect_amount_value",notecol.effect_amount_value)
         if (from_column and col_idx < from_column) then 
           -- do nothing 
         elseif (notecol.effect_number_value == 0 and notecol.effect_amount_value == 0) then
@@ -519,7 +517,6 @@ function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,c
   -- check if the command is already present
   local notecol_idx = -1 -- only match effect-columns
   local rslt = xLinePattern.get_effect_column_command(track,line,fx_number,notecol_idx,visible_only)
-  print("rslt",rprint(rslt))
   if not table.is_empty(rslt) 
     and rslt[1].value == fx_amount
   then 
@@ -529,7 +526,6 @@ function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,c
     local from_column = column_index and column_index or track.visible_note_columns+1
     local rslt = xLinePattern.get_available_effect_column(track,line,visible_only,from_column)
     if rslt then 
-      print(">>> available columnn:",column_index)
       column_index = rslt.column_index 
     else 
       
@@ -550,13 +546,11 @@ function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,c
     
   local note_fx_cols = track.sample_effects_column_visible and track.visible_note_columns or 0
   if (column_index > note_fx_cols) then 
-    print("use effect column",column_index-track.visible_note_columns,column_index)
     local column = line.effect_columns[column_index-track.visible_note_columns]
     column.number_string = fx_number
     column.amount_value = math.floor(fx_amount)
     return column
   else
-    print("use sample effect column")
     local column = line.note_columns[column_index]
     column.effect_number_string = fx_number
     column.effect_amount_value = math.floor(fx_amount)
