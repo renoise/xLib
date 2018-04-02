@@ -276,6 +276,11 @@ function xPhrase.get_line_from_cursor(phrase,trigger_pos,cursor_pos,line_offset,
       line_in_phrase = line_in_phrase + phrase.loop_start-1
     end  
   end
+  
+  -- value of 0 equals last line in phrase 
+  if (line_in_phrase == 0) then 
+    line_in_phrase = phrase.number_of_lines
+  end
 
   return line_in_phrase+line_in_phrase_fraction
   
