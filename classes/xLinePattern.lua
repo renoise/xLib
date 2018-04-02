@@ -395,7 +395,8 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
   local matches = table.create()
   local col_idx = 1
 
-  if track.sample_effects_column_visible then
+  local check_notecols = not visible_only and true or track.sample_effects_column_visible 
+  if check_notecols then 
     for k,notecol in ipairs(line.note_columns) do
       if visible_only and (k > track.visible_note_columns) then
         break
@@ -414,6 +415,8 @@ function xLinePattern.get_effect_column_command(track,line,fx_type,notecol_idx,v
         col_idx = col_idx + 1
       end
     end
+  else
+    col_idx = track.visible_note_columns + 1
   end 
 
   for k,fxcol in ipairs(line.effect_columns) do
@@ -452,11 +455,14 @@ function xLinePattern.get_available_effect_column(track,line,visible_only,from_c
 
   local col_idx = 1
   
-  if track.sample_effects_column_visible then
+  local check_notecols = not visible_only and true or track.sample_effects_column_visible   
+  if check_notecols then
     for k,notecol in ipairs(line.note_columns) do
       if visible_only and (k > track.visible_note_columns) then
         break
       else
+        print(">>> notecol.effect_number_value",notecol.effect_number_value)
+        print(">>> notecol.effect_amount_value",notecol.effect_amount_value)
         if (from_column and col_idx < from_column) then 
           -- do nothing 
         elseif (notecol.effect_number_value == 0 and notecol.effect_amount_value == 0) then
@@ -469,6 +475,9 @@ function xLinePattern.get_available_effect_column(track,line,visible_only,from_c
         col_idx = col_idx + 1        
       end
     end
+  else
+    -- note-fx columns hidden - increase column count 
+    col_idx = track.visible_note_columns + 1
   end 
 
   for k,fxcol in ipairs(line.effect_columns) do
@@ -491,59 +500,67 @@ function xLinePattern.get_available_effect_column(track,line,visible_only,from_c
 end
 
 ---------------------------------------------------------------------------------------------------
--- Write command into effect-column or note-effects column
+-- Write command into effect-column or note-effects column - does the following 
+--  * check if effect-command already is present in effect columns 
+--  * check if it needs to allocate new effect-columns (when existing ones are occupied)
 -- @param track (renoise.Track)
 -- @param line (renoise.PatternLine)
 -- @param fx_number (string) - two-digit string 
 -- @param fx_amount (number) - fx value 
--- @param column_index (number) - fx-col index (can refer to note-col if sample-effects are visible)
+-- @param [column_index] (number) - column index (visible note-columns -> effect columns)
+-- @param [overwrite] (boolean) - replace existing value (only when column_index is specified)
+-- @return renoise.NoteColumn/renoise.EffectColumn when command was written, else nil 
+-- @return string, error message when unable to write  
 
-function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,column_index)
-  TRACE("xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,column_index)",track,line,fx_number,fx_amount,column_index)
+function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,column_index,overwrite)
+  TRACE("xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,column_index,overwrite)",track,line,fx_number,fx_amount,column_index,overwrite)
   
-  if (not column_index) then 
-    -- use first available effect column 
-    local visible_only = true
-    -- check if the command is already present
-    local notecol_idx = -1 -- only match effect-columns
-    local rslt = xLinePattern.get_effect_column_command(track,line,fx_number,notecol_idx,visible_only)
-    print("rslt",rprint(rslt))
-    if not table.is_empty(rslt) 
-      and rslt[1].value == fx_amount
-    then 
-      -- command already exists
-      return
+  local visible_only = true
+  -- check if the command is already present
+  local notecol_idx = -1 -- only match effect-columns
+  local rslt = xLinePattern.get_effect_column_command(track,line,fx_number,notecol_idx,visible_only)
+  print("rslt",rprint(rslt))
+  if not table.is_empty(rslt) 
+    and rslt[1].value == fx_amount
+  then 
+    -- command already exists
+    return nil, "Effect Command already exists"
+  else 
+    local from_column = column_index and column_index or track.visible_note_columns+1
+    local rslt = xLinePattern.get_available_effect_column(track,line,visible_only,from_column)
+    if rslt then 
+      print(">>> available columnn:",column_index)
+      column_index = rslt.column_index 
     else 
-      local from_column = track.visible_note_columns+1
-      local rslt = xLinePattern.get_available_effect_column(track,line,visible_only,from_column)
-      if rslt then 
-        column_index = rslt.column_index 
-      else 
-        
-        -- finally, attempt to allocate another effect column 
-        if (track.visible_effect_columns < track.max_effect_columns) then 
-          local visible_cols = track.visible_effect_columns + 1 
-          track.visible_effect_columns = visible_cols
-          column_index = track.sample_effects_column_visible 
-            and track.visible_note_columns + visible_cols
-            or visible_cols
-        end
+      
+      -- finally, attempt to allocate another effect column 
+      if (track.visible_effect_columns < track.max_effect_columns) then 
+        local visible_cols = track.visible_effect_columns + 1 
+        track.visible_effect_columns = visible_cols
+        column_index = track.sample_effects_column_visible 
+          and track.visible_note_columns + visible_cols
+          or visible_cols
       end
-    end 
-        
+    end
+  end   
+  
+  if not column_index then 
+    return nil, "No effect-column was matched"
   end
     
   local note_fx_cols = track.sample_effects_column_visible and track.visible_note_columns or 0
   if (column_index > note_fx_cols) then 
-    -- use effect column 
-    local column = line.effect_columns[column_index-note_fx_cols]
+    print("use effect column",column_index-track.visible_note_columns,column_index)
+    local column = line.effect_columns[column_index-track.visible_note_columns]
     column.number_string = fx_number
     column.amount_value = math.floor(fx_amount)
+    return column
   else
-    -- use sample effect column 
+    print("use sample effect column")
     local column = line.note_columns[column_index]
     column.effect_number_string = fx_number
     column.effect_amount_value = math.floor(fx_amount)
+    return column
   end
     
 end
