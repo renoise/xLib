@@ -316,3 +316,118 @@ function xInstrument.reset_sampler()
   error("Not implemented")
   
 end
+
+---------------------------------------------------------------------------------------------------
+-- Insert/create sample - insert at sample_idx, or after selected one 
+--  use the provided values to initialize the sample 
+-- @param instr (renoise.Instrument)
+-- @param sample_idx (number), source sample index 
+-- @param sample_rate (xSampleBuffer.SAMPLE_RATE) [optional]
+-- @param bit_depth (xSampleBuffer.BIT_DEPTH) [optional]
+-- @param num_channels (number) [optional]
+-- @param num_frames (number) [optional]
+-- @return number (sample index) or nil
+
+function xInstrument.insert_sample(
+  instr,sample_idx,sample_rate,bit_depth,num_channels,num_frames)
+  TRACE("xInstrument.insert_sample()",instr,sample_idx,sample_rate,bit_depth,num_channels,um_frames)
+
+  assert(type(instr)=="Instrument")
+  assert(type(sample_idx)=="number")
+
+  local defaults = xSampleBuffer.get_default_properties()
+  sample_rate = sample_rate or defaults.sample_rate
+  bit_depth = bit_depth or defaults.bit_depth
+  num_channels = num_channels or defaults.number_of_channels
+  num_frames = num_frames or defaults.number_of_frames
+
+  -- create sample 
+  sample_idx = sample_idx or rns.selected_sample_index
+  sample_idx = 1 + cLib.clamp_value(sample_idx,1,#instr.samples)
+  instr:insert_sample_at(sample_idx)
+
+  local sample = instr.samples[sample_idx]
+  if not sample then 
+    error("Expected a new sample")
+  end 
+
+  -- create buffer 
+  local buffer = sample.sample_buffer
+  buffer:create_sample_data(sample_rate,bit_depth,num_channels,num_frames)
+  return sample_idx
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- Clone sample the provided sample, frame by frame
+--  * inserts sample after the provided one if dest_sample_idx is not specified. 
+--  * can convert: provide custom sample_rate/bit_depth/channels/frames
+-- @param instr (renoise.Instrument)
+-- @param sample_idx (number), source sample index 
+-- @param dest_sample_idx (number), insert sample at this index [optional]
+-- @param sample_rate (xSampleBuffer.SAMPLE_RATE)
+-- @param bit_depth (xSampleBuffer.BIT_DEPTH)
+-- @param num_channels (number)
+-- @param num_frames (number)
+-- @return (...) or nil
+--  number (sample index) 
+--  boolean (drumkit mode)
+
+function xInstrument.clone_sample(
+  instr,sample_idx,dest_sample_idx,
+  sample_rate,bit_depth,num_channels,num_frames)
+  TRACE("xInstrument.clone_sample()")
+  -- num_frames,num_channel,
+
+  assert(type(instr)=="Instrument")
+  assert(type(sample_idx)=="number")
+
+  local sample = instr.samples[sample_idx]
+  if not sample then 
+    error("Expected a sample")
+  end 
+
+  local buffer = xSample.get_sample_buffer(sample) 
+  if not buffer then 
+    error("Expected a sample-buffer containing data")
+  end 
+  sample_rate = sample_rate or buffer.sample_rate
+  bit_depth = bit_depth or buffer.bit_depth
+  num_channels = num_channels or buffer.number_of_channels
+  num_frames = num_frames or buffer.number_of_frames
+
+  -- create sample
+  dest_sample_idx = dest_sample_idx and dest_sample_idx or sample_idx + 1
+  instr:insert_sample_at(dest_sample_idx)
+  local new_sample = instr.samples[dest_sample_idx]
+  if not new_sample then 
+    error("Expected a new sample")
+  end 
+  --print("new_sample",new_sample)
+
+  -- detect if instrument is in drumkit mode
+  -- (usually, a newly inserted sample occupies the entire keyzone...)
+  local drumkit_mode = not xSampleMapping.has_full_note_range(new_sample.sample_mapping)
+  --print("drumkit_mode",drumkit_mode)
+
+  -- initialize some properties before copying...
+  --new_sample.loop_start = 1
+  --new_sample.loop_end = num_frames
+  
+  -- copy general properties 
+  cReflection.copy_object_properties(sample,new_sample)
+
+  -- maintain beat sync 
+  -- local new_sync_val = sample.beat_sync_lines * (num_frames/buffer.number_of_frames) 
+  -- if (sample.beat_sync_enabled == false or new_sync_val > 256) then
+  --   new_sample.beat_sync_lines = sample.beat_sync_lines
+  -- else
+  --   new_sample.beat_sync_lines = new_sync_val
+  -- end 
+
+  local new_buffer = new_sample.sample_buffer
+  new_buffer:create_sample_data(sample_rate,bit_depth,num_channels,num_frames)
+
+  return dest_sample_idx,drumkit_mode
+
+end
