@@ -516,6 +516,7 @@ end
 -- API5: Using a phrase to retrieve the phrase-mapping index
 
 function xPhraseManager.get_mapping_index_by_phrase_index(instr_idx,phrase_idx)
+  TRACE("xPhraseManager.get_mapping_index_by_phrase_index(instr_idx,phrase_idx)",instr_idx,phrase_idx)
 
   local instr = rns.instruments[instr_idx]
   if not instr then
@@ -598,12 +599,9 @@ function xPhraseManager.delete_selected_phrase_mapping()
   TRACE("xPhraseManager.delete_selected_phrase_mapping()")
 
   local instr = rns.selected_instrument
-  local phrase_idx = rns.selected_phrase_index
-  if (phrase_idx 
-    and instr.phrases[phrase_idx]
-    and instr.phrases[phrase_idx].mapping) 
-  then
-    instr:delete_phrase_mapping_at(phrase_idx)
+  local mapping_idx = xPhraseManager.get_selected_mapping_index()
+  if instr and mapping_idx then
+    instr:delete_phrase_mapping_at(mapping_idx)
   end
 
 end
@@ -622,26 +620,22 @@ function xPhraseManager.get_selected_mapping()
 end
 
 --------------------------------------------------------------------------------
+-- return the selected phrase-mapping index (when keymapped)
 -- @return int or nil
 
 function xPhraseManager.get_selected_mapping_index()
   TRACE("xPhraseManager.get_selected_mapping_index()")
 
-  local instr = rns.selected_instrument
-  local phrase = rns.selected_phrase
-  if not phrase then
+  local phrase_idx = rns.selected_phrase_index
+  if not phrase_idx then
     return 
   end
 
-  local mapping = phrase.mapping
-  if not mapping then
-    return
-  end
-
-  for k,v in ipairs(instr.phrase_mappings) do
-    if (rawequal(phrase,v.phrase)) then
-      return k
-    end 
+  local instr_idx = rns.selected_instrument_index
+  local mapping,mapping_idx = 
+    xPhraseManager.get_mapping_index_by_phrase_index(instr_idx,phrase_idx)
+  if mapping_idx then 
+    return mapping_idx
   end
 
 end
