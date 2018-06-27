@@ -345,7 +345,7 @@ end
 --  column_type: xEffectColumn.TYPE
 --  amount_value: number 
 --  amount_string: string 
--- }>
+-- }> or nil
 
 function xLinePattern.get_effect_command(track,line,fx_type,notecol_idx,visible_only)
   --TRACE("xLinePattern.get_effect_command(track,line,fx_type,notecol_idx,visible_only)")
@@ -362,8 +362,6 @@ function xLinePattern.get_effect_command(track,line,fx_type,notecol_idx,visible_
   else 
     error("Unexpected effects type")
   end 
-
-  return {}
 
 end
 
