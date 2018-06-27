@@ -10,34 +10,7 @@ Static methods for working with renoise.Sample objects
 
 ]]
 
---=================================================================================================
-
-cLib.require (_clibroot.."cReflection")
-cLib.require (_xlibroot.."xSampleMapping")
-cLib.require (_xlibroot.."xPhrase")
-cLib.require (_xlibroot.."xSongPos")
-cLib.require (_xlibroot.."xLinePattern")
-cLib.require (_xlibroot.."xNoteColumn")
-
----------------------------------------------------------------------------------------------------
-
 class 'xSample'
-
-xSample.SAMPLE_INFO = {
-  EMPTY = 1,
-  SILENT = 2,
-  PAN_LEFT = 4,
-  PAN_RIGHT = 8,
-  DUPLICATE = 16,
-  MONO = 32,
-  STEREO = 64,
-}
-
-xSample.SAMPLE_CHANNELS = {
-  LEFT = 1,
-  RIGHT = 2,
-  BOTH = 3,
-}
 
 --- SAMPLE_CONVERT: misc. channel operations
 -- MONO_MIX: stereo -> mono mix (mix left and right)
@@ -53,171 +26,137 @@ xSample.SAMPLE_CONVERT = {
   SWAP = 5,
 }
 
-xSample.BIT_DEPTH = {0,8,16,24,32}
-
-
-
 ---------------------------------------------------------------------------------------------------
--- credit goes to dblue
--- @param sample (renoise.Sample)
--- @return int (0 when no sample data)
+-- get sample name, as it appears in the sample-list (untitled samples included)
+-- @return string
 
-function xSample.get_bit_depth(sample)
-  TRACE("xSample.get_bit_depth(sample)",sample)
-
-  local function reverse(t)
-    local nt = {}
-    local size = #t + 1
-    for k,v in ipairs(t) do
-      nt[size - k] = v
-    end
-    return nt
-  end
-  
-  local function tobits(num)
-    local t = {}
-    while num > 0 do
-      local rest = num % 2
-      t[#t + 1] = rest
-      num = (num - rest) / 2
-    end
-    t = reverse(t)
-    return t
-  end
-  
-  -- Vars and crap
-  local bit_depth = 0
-  local sample_max = math.pow(2, 32) / 2
-  local buffer = sample.sample_buffer
-  
-  -- If we got some sample data to analyze
-  if (buffer.has_sample_data) then
-  
-    local channels = buffer.number_of_channels
-    local frames = buffer.number_of_frames
-    
-    for f = 1, frames do
-      for c = 1, channels do
-      
-        -- Convert float to 32-bit unsigned int
-        local s = (1 + buffer:sample_data(c, f)) * sample_max
-        
-        -- Measure bits used
-        local bits = tobits(s)
-        for b = 1, #bits do
-          if bits[b] == 1 then
-            if b > bit_depth then
-              bit_depth = b
-            end
-          end
-        end
-
-      end
-    end
-  end
-    
-  return xSample.bits_to_xbits(bit_depth),bit_depth
+function xSample.get_display_name(sample,sample_idx)
+  TRACE("xSample.get_display_name(sample,sample_idx)",sample,sample_idx)
+  assert(type(sample)=="Sample")
+  assert(type(sample_idx)=="number")
+  return (sample.name == "") 
+    and ("Sample %02X"):format(sample_idx-1) 
+    or sample.name
 
 end
 
-
 ---------------------------------------------------------------------------------------------------
--- convert any bit-depth to a valid xSample representation
--- @param num_bits (int)
--- @return int (xSample.BIT_DEPTH)
+-- set sample loop to entire range 
 
-function xSample.bits_to_xbits(num_bits)
-  if (num_bits == 0) then
-    return 0
+function xSample.set_loop_all(sample)
+  TRACE("xSample.set_loop_all()",sample)
+  assert(type(sample)=="Sample")
+  local buffer = xSample.get_sample_buffer(sample)
+  if buffer then 
+    xSample.set_loop_pos(sample,1,buffer.number_of_frames)
   end
-  for k,xbits in ipairs(xSample.BIT_DEPTH) do
-    if (num_bits <= xbits) then
-      return xbits
-    end
-  end
-  error("Number is outside allowed range")
-
 end
 
+---------------------------------------------------------------------------------------------------
+-- true when loop spans the entire range 
+-- @return boolean or nil when no buffer 
 
-----------------------------------------------------------------------------------------------------
--- check if sample has duplicate channel data, is hard-panned or silent
--- (several detection functions in one means less methods are needed...)
--- @param sample  (renoise.Sample)
--- @return enum (xSample.SAMPLE_[...])
-
-function xSample.get_channel_info(sample)
-  TRACE("xSample.get_channel_info(sample)",sample)
-
-  local buffer = sample.sample_buffer
-  if not buffer.has_sample_data then
-    return xSample.SAMPLE_INFO.EMPTY
+function xSample.is_fully_looped(sample)
+  TRACE("xSample.is_fully_looped()",sample)
+  assert(type(sample)=="Sample")
+  local buffer = xSample.get_sample_buffer(sample)
+  if buffer then 
+    return (sample.loop_start == 1) and (sample.loop_end == buffer.number_of_frames)
   end
+end
 
-  -- not much to do with a monophonic sound...
-  if (buffer.number_of_channels == 1) then
-    if xSample.sample_buffer_is_silent(buffer,xSample.SAMPLE_CHANNELS.LEFT) then
-      return xSample.SAMPLE_INFO.SILENT
+---------------------------------------------------------------------------------------------------
+-- set sample loop - fit to range, allow end before start (flip)
+
+function xSample.set_loop_pos(sample,start_pos,end_pos)
+  TRACE("xSample.set_loop_pos(sample,start_pos,end_pos)",sample,start_pos,end_pos)
+
+  local buffer = xSample.get_sample_buffer(sample)
+  if not buffer then 
+    return
+  end 
+
+  local is_looped = (sample.loop_mode ~= renoise.Sample.LOOP_MODE_OFF)
+
+  -- flip start/end if needed 
+  local start_pos,end_pos = math.min(start_pos,end_pos),math.max(start_pos,end_pos)
+
+  -- fit within buffer boundaries 
+  start_pos = math.max(1,start_pos)
+  end_pos = math.min(buffer.number_of_frames,end_pos)
+
+  if not is_looped then 
+    sample.loop_end = start_pos
+    sample.loop_start = end_pos
+  else 
+    if (start_pos > sample.loop_end) then
+      sample.loop_end = end_pos
+      sample.loop_start = start_pos
     else
-      return xSample.SAMPLE_INFO.MONO
+      sample.loop_start = start_pos
+      sample.loop_end = end_pos
     end
   end
-
-  local l_pan = true
-  local r_pan = true
-  local silent = true
-  local duplicate = true
-
-  local l = nil
-  local r = nil
-  local frames = buffer.number_of_frames
-  for f = 1, frames do
-    l = buffer:sample_data(1,f)
-    r = buffer:sample_data(2,f)
-    if (l ~= 0) then
-      silent = false
-      r_pan = false
-    end
-    if (r ~= 0) then
-      silent = false
-      l_pan = false
-    end
-    if (l ~= r) then
-      duplicate = false
-      if not silent and not r_pan and not l_pan then
-        return xSample.SAMPLE_INFO.STEREO
-      end
-    end
-  end
-
-  if silent then
-    return xSample.SAMPLE_INFO.SILENT
-  elseif duplicate then
-    return xSample.SAMPLE_INFO.DUPLICATE
-  elseif r_pan then
-    return xSample.SAMPLE_INFO.PAN_RIGHT
-  elseif l_pan then
-    return xSample.SAMPLE_INFO.PAN_LEFT
-  end
-
-  return xSample.SAMPLE_INFO.STEREO
-
 end
+
+---------------------------------------------------------------------------------------------------
+-- match sample loop with buffer selection 
+
+function xSample.set_loop_to_selection(sample)
+  TRACE("xSample:set_loop_to_selection(sample)",sample)
+  local buffer = xSample.get_sample_buffer(sample) 
+  if buffer then 
+    xSample.set_loop_pos(sample,buffer.selection_start,buffer.selection_end)  
+    if (sample.loop_mode == renoise.Sample.LOOP_MODE_OFF) then 
+      sample.loop_mode = renoise.Sample.LOOP_MODE_FORWARD
+    end
+  end 
+end
+
+---------------------------------------------------------------------------------------------------
+-- clear loop (set to off, with full range)
+
+function xSample.clear_loop(sample)
+  TRACE("xSample.clear_loop(sample)",sample)
+  local buffer = xSample.get_sample_buffer(sample) 
+  if buffer then 
+    xSample.set_loop_pos(sample,1,buffer.number_of_frames)  
+    sample.loop_mode = renoise.Sample.LOOP_MODE_OFF
+  end 
+end
+
+---------------------------------------------------------------------------------------------------
+-- obtain the sample buffer if defined and not empty 
+-- @param sample (renoise.Sample)
+-- @return renoise.SampleBuffer or nil 
+
+function xSample.get_sample_buffer(sample) 
+  --TRACE("xSample.get_sample_buffer(sample)",sample,sample.name,sample.sample_buffer)
+  if sample.sample_buffer 
+    and sample.sample_buffer.has_sample_data
+  then
+    return sample.sample_buffer
+  end
+end 
 
 ----------------------------------------------------------------------------------------------------
 -- convert sample: change bit-depth, perform channel operations, crop etc.
--- (jumping through a few hoops to keep keyzone and phrases intact...)
+-- TODO: use buffer operations
 -- @param instr (renoise.Instrument)
 -- @param sample_idx (int)
 -- @param bit_depth (xSample.BIT_DEPTH)
 -- @param channel_action (xSample.SAMPLE_CONVERT)
 -- @param range (table) source start/end frames
--- @return renoise.Sample or nil (when failed to convert)
 
-function xSample.convert_sample(instr,sample_idx,bit_depth,channel_action,range)
-  TRACE("xSample.convert_sample(instr,sample_idx,bit_depth,channel_action)",instr,sample_idx,bit_depth,channel_action)
+function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,range)
+  TRACE("xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action)",instr,sample_idx,bit_depth,channel_action)
+
+  local instr = rns.instruments[instr_idx]
+  assert(type(instr)=="Instrument")
 
   local sample = instr.samples[sample_idx]
+  assert(type(sample)=="Sample")
+
   local buffer = sample.sample_buffer
   if not buffer.has_sample_data then
     return false
@@ -227,30 +166,6 @@ function xSample.convert_sample(instr,sample_idx,bit_depth,channel_action,range)
   local num_frames = (range) and (range.end_frame-range.start_frame+1) or buffer.number_of_frames
   --print(">>> num_frames,number_of_frames",num_frames,buffer.number_of_frames)
 
-  local new_sample = instr:insert_sample_at(sample_idx+1)
-  local new_buffer = new_sample.sample_buffer
-  local success = new_buffer:create_sample_data(
-    buffer.sample_rate, 
-    bit_depth, 
-    num_channels,
-    num_frames)  
-
-  if not success then
-    error("Failed to create sample buffer")
-  end
-
-  -- detect if instrument is in drumkit mode
-  -- (when basenote is shifted by one semitone)
-  local drumkit_mode = not ((new_sample.sample_mapping.note_range[1] == 0) and 
-    (new_sample.sample_mapping.note_range[2] == 119))
-
-  -- initialize certain aspects of sample
-  -- before copying over information...
-  new_sample.loop_start = 1
-  new_sample.loop_end = num_frames
-
-  cReflection.copy_object_properties(sample,new_sample)
-
   -- only when copying single channel 
   local channel_idx = 1 
   if(channel_action == xSample.SAMPLE_CONVERT.MONO_RIGHT) then
@@ -258,150 +173,41 @@ function xSample.convert_sample(instr,sample_idx,bit_depth,channel_action,range)
   end
   
   -- change sample 
-  local f = nil
-  local new_f_idx = 1
-  local from_idx = range.start_frame
-  local to_idx = range.start_frame+num_frames-1
-  new_buffer:prepare_sample_data_changes()
-  for f_idx = from_idx,to_idx do
 
-    if(channel_action == xSample.SAMPLE_CONVERT.MONO_MIX) then
-      -- mix stereo to mono signal
-      -- TODO 
-    else
-      -- copy from one channel to target channel(s)
-      f = buffer:sample_data(channel_idx,f_idx)
-      new_buffer:set_sample_data(1,new_f_idx,f)
-      if (num_channels == 2) then
+  local do_process = function(new_buffer)
+    local f = nil
+    local new_f_idx = 1
+    local from_idx = range.start_frame
+    local to_idx = range.start_frame+num_frames-1
+    --new_buffer:prepare_sample_data_changes()
+  
+    for f_idx = from_idx,to_idx do
+      if(channel_action == xSample.SAMPLE_CONVERT.MONO_MIX) then
+        -- mix stereo to mono signal
+        -- TODO 
+      else
+        -- copy from one channel to target channel(s)
         f = buffer:sample_data(channel_idx,f_idx)
-        new_buffer:set_sample_data(2,new_f_idx,f)
+        new_buffer:set_sample_data(1,new_f_idx,f)
+        if (num_channels == 2) then
+          f = buffer:sample_data(channel_idx,f_idx)
+          new_buffer:set_sample_data(2,new_f_idx,f)
+        end
       end
+      new_f_idx = new_f_idx+1
     end
-
-    new_f_idx = new_f_idx+1
-
-  end
-  new_buffer:finalize_sample_data_changes()
-  -- /change sample 
-
-  -- when in drumkit mode, shift back keyzone mappings
-  if drumkit_mode then
-    xSampleMapping.shift_keyzone_by_semitones(instr,sample_idx+2,-1)
   end
 
-  -- rewrite phrases so we don't loose direct sample 
-  -- references when deleting the original sample
-  for k,v in ipairs(instr.phrases) do
-    xPhrase.replace_sample_index(v,sample_idx,sample_idx+1)
-  end
+  local bop = xSampleBufferOperation{
+    instrument_index = instr_idx,
+    sample_index = sample_idx,
+    operations = {
+      do_process
+    }
+  }
 
-  instr:delete_sample_at(sample_idx)
 
   return new_sample
-
-end
-
-----------------------------------------------------------------------------------------------------
--- check if the indicated sample buffer is silent
--- @param buffer (renoise.SampleBuffer)
--- @param channels (xSample.SAMPLE_CHANNELS)
--- @return bool (or nil if no data)
-
-function xSample.sample_buffer_is_silent(buffer,channels)
-  TRACE("xSample.sample_buffer_is_silent(buffer,channels)",buffer,channels)
-
-  if not buffer.has_sample_data then
-    return 
-  end
-
-  local frames = buffer.number_of_frames
-
-  if (channels == xSample.SAMPLE_CHANNELS.BOTH) then
-    for f = 1, frames do
-      if (buffer:sample_data(1,f) ~= 0) or 
-        (buffer:sample_data(2,f) ~= 0) 
-      then
-        return false
-      end
-    end
-  elseif (channels == xSample.SAMPLE_CHANNELS.LEFT) then
-    for f = 1, frames do
-      if (buffer:sample_data(1,f) ~= 0) then
-        return false
-      end
-    end
-  elseif (channels == xSample.SAMPLE_CHANNELS.RIGHT) then
-    for f = 1, frames do
-      if (buffer:sample_data(2,f) ~= 0) then
-        return false
-      end
-    end
-  end
-
-  return true
-
-end
-
-----------------------------------------------------------------------------------------------------
--- check if the sample buffer contains leading or trailing silence
--- @param buffer (renoise.SampleBuffer)
--- @param channels (xSample.SAMPLE_CHANNELS)
--- @param [threshold] (number), values below this level is considered silence (default is 0)
--- @return table
---  start_frame 
---  end_frame 
-
-function xSample.detect_leading_trailing_silence(buffer,channels,threshold)
-  TRACE("xSample.detect_leading_trailing_silence(buffer,channels,threshold)",buffer,channels,threshold)
-
-  if not buffer.has_sample_data then
-    LOG("*** xSample.detect_leading_trailing_silence - no sample data")
-    return 
-  end
-
-  if not threshold then 
-    threshold = 0
-  end
-
-  local frames = buffer.number_of_frames
-  local last_frame_value = nil
-  local first_frame_with_signal = nil
-  local first_silent_frame_after_signal = nil
-
-  local compare_fn = function(frame,val) 
-    local abs_val = math.abs(val)
-    if (abs_val > threshold) then 
-      if not first_frame_with_signal then 
-        first_frame_with_signal = frame 
-        --print("first_frame_with_signal",frame,abs_val)
-      end 
-      first_silent_frame_after_signal = nil
-    else
-      if (last_frame_value and last_frame_value > threshold) then 
-        first_silent_frame_after_signal = frame
-        --print("first_silent_frame_after_signal",frame,abs_val)
-      end 
-    end 
-    last_frame_value = abs_val
-  end
-
-  if (channels == xSample.SAMPLE_CHANNELS.BOTH) then
-    for f = 1, frames do
-      -- use averaged value 
-      local val = (buffer:sample_data(1,f) + buffer:sample_data(2,f)) / 2
-      compare_fn(f,val)
-    end
-  elseif (channels == xSample.SAMPLE_CHANNELS.LEFT) then
-    for f = 1, frames do
-      compare_fn(f,buffer:sample_data(1,f))
-    end
-  elseif (channels == xSample.SAMPLE_CHANNELS.RIGHT) then
-    for f = 1, frames do
-      compare_fn(f,buffer:sample_data(2,f))
-    end
-  end
-
-  return first_frame_with_signal,first_silent_frame_after_signal
 
 end
 
@@ -494,66 +300,6 @@ function xSample.get_name_tokens(str)
 end
 
 ---------------------------------------------------------------------------------------------------
--- select region in waveform editor (clamp to valid range)
--- @param sample (renoise.Sample)
--- @param sel_start (int)
--- @param sel_end (int)
-
-function xSample.set_buffer_selection(sample,sel_start,sel_end)
-  TRACE("xSample.set_buffer_selection()",sample,sel_start,sel_end)
-  
-  local buffer = sample.sample_buffer
-  if not buffer.has_sample_data then
-    return false, "Cannot select, sample has no data"
-  end
-
-  local min = 1
-  local max = buffer.number_of_frames  
-  
-  buffer.selection_range = {
-    cLib.clamp_value(sel_start,min,max),
-    cLib.clamp_value(sel_end,min,max),
-  }
-
-end
-
----------------------------------------------------------------------------------------------------
--- get a buffer position by "line"
--- note that fractional line values are supported
--- @param sample (renoise.Sample)
--- @param line (number) 
--- @return number or nil if out of bounds/no buffer
-
-function xSample.get_buffer_frame_by_line(sample,line)
-  TRACE("xSample.get_buffer_frame_by_line(line)",line)
-
-  local buffer = sample.sample_buffer
-  if not buffer.has_sample_data then
-    return false, "Sample has no data"
-  end
-
-  local lines_per_minute = (rns.transport.lpb*rns.transport.bpm)
-  local lines_per_sec = 60/lines_per_minute
-  local line_frames = lines_per_sec*buffer.sample_rate
-  return line*line_frames
-
-end
-
----------------------------------------------------------------------------------------------------
--- get a buffer position by "beat"
--- note that fractional beat values are supported
--- @param beat (number)
--- @return number or nil if out of bounds/no buffer
-
-function xSample.get_buffer_frame_by_beat(beat)
-  TRACE("xSample.get_buffer_frame_by_beat(beat)",beat)
-  
-  local lpb = rns.transport.lpb
-  return (xSample.get_buffer_frame_by_line(beat*lpb))
-
-end
-
----------------------------------------------------------------------------------------------------
 -- obtain the buffer frame from a particular position in the song
 -- @param sample (renoise.Sample)
 -- @param trigger_pos (xCursorPos), triggering position + note/pitch/delay/offset
@@ -594,7 +340,7 @@ function xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_s
   -- precise position #2: add fractional line 
   line_diff = line_diff + cLib.fraction(end_pos.line)
 
-  local frame = xSample.get_buffer_frame_by_line(sample,line_diff)
+  local frame = xSampleBuffer.get_frame_by_line(sample.sample_buffer,line_diff)
   frame = xSample.get_transposed_frame(notecol.note_value,frame,sample)
 
   -- increase frame if the sample was triggered using Sxx command 
@@ -670,4 +416,3 @@ function xSample.initialize_loop(sample,loop_mode)
   sample.loop_mode = loop_mode or renoise.Sample.LOOP_MODE_OFF
 
 end
-
