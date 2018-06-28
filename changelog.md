@@ -16,6 +16,10 @@
   `xSample.set_buffer_selection` -> `xSampleBuffer.set_buffer_selection`
   `xSample.get_buffer_frame_by_line` -> `xSampleBuffer.get_frame_by_line`
   `xSample.get_buffer_frame_by_beat` -> `xSampleBuffer.get_frame_by_beat`
+  `xSample.SAMPLE_INFO` -> `xSampleBuffer.SAMPLE_INFO`
+  `xSample.SAMPLE_CHANNELS` -> `xSampleBuffer.SAMPLE_CHANNELS`
+  `xSample.BIT_DEPTH` -> `xSampleBuffer.BIT_DEPTH`
+  `xSample.SAMPLE_RATE` -> `xSampleBuffer.SAMPLE_RATE`
 - Fixed: `xPhraseManager.delete_selected_phrase_mapping` - resolve mapping, not phrase
 
 ## 0.53 - Apr 2, 2018
