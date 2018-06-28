@@ -21,6 +21,7 @@ cLib.require(_clibroot..'cFilesystem')
 cLib.require(_xlibroot.."xNoteColumn")
 cLib.require(_xlibroot.."xSongPos")
 cLib.require(_xlibroot.."xTrack")
+cLib.require(_xlibroot.."xPatternSelection")
 
 ---------------------------------------------------------------------------------------------------
 
