@@ -2,10 +2,20 @@
 
 ## 0.54 - June 28th, 2018
 
-- new class: xKeyZone, refactored from xInstrument - and expanded
+- New class: `xKeyZone`, contains refactored methods:
+  `xInstrument.get_samples_mapped_to_note` -> `xKeyZone.get_samples_mapped_to_note`
+  `xSampleMapping.shift_keyzone_by_semitones` -> `xKeyZone.shift_by_semitones`
 - xInstrument: new methods `insert_sample`, `clone_sample`
 - Change `xSongSettings` -> `xPersistentSettings` - support instr. comments
-- `xSample` - refactor sample buffer / operations into separate classes
+- New class: `xSampleBuffer` - contains refactored methods:
+  `xSample.get_bit_depth` -> `xSampleBuffer.get_bit_depth`
+  `xSample.bits_to_xbits` -> `xSampleBuffer.bits_to_xbits`
+  `xSample.get_channel_info` -> `xSampleBuffer.get_channel_info`
+  `xSample.sample_buffer_is_silent` -> `xSampleBuffer.is_silent`
+  `xSample.detect_leading_trailing_silence` -> `xSampleBuffer.detect_leading_trailing_silence`
+  `xSample.set_buffer_selection` -> `xSampleBuffer.set_buffer_selection`
+  `xSample.get_buffer_frame_by_line` -> `xSampleBuffer.get_frame_by_line`
+  `xSample.get_buffer_frame_by_beat` -> `xSampleBuffer.get_frame_by_beat`
 - Fixed: `xPhraseManager.delete_selected_phrase_mapping` - resolve mapping, not phrase
 
 ## 0.53 - Apr 2, 2018
@@ -42,18 +52,18 @@
 - Added classes to deal with offline automation:  
   `xAudioDeviceAutomation`, `xParameterAutomation`
 - Refactored `xSelection` into separate classes:  
-    `xPatternSelection`, `xMatrixSelection`, `xPatternSelection`, `xSequencerSelection`
-    Method are now available as:  
-    `xSelection.get_pattern_track` -> `xPatternSelection.get_pattern_track`
-    `xSelection.get_pattern_column` -> `xPatternSelection.get_pattern_column`
-    `xSelection.get_pattern_if_single_track` -> `xPatternSelection.get_pattern_if_single_track`
-    `xSelection.get_column_in_track` -> `xPatternSelection.get_column_in_track`
-    `xSelection.get_group_in_pattern` -> `xPatternSelection.get_group_in_pattern`
-    `xSelection.get_phrase` -> `xPhraseSelection.get_phrase`
-    `xSelection.get_matrix_selection` -> `xMatrixSelection.get_selection`
-    `xSelection.get_entire_sequence` -> `xSequencerSelection.get_entire_range`  
-    `xSelection.is_single_column` -> `xPatternSelection.is_single_column`  
-    `xSelection.is_single_track` -> `xPatternSelection.is_single_track`  
+    `xPatternSelection`, `xMatrixSelection`, `xPatternSelection`, `xSequencerSelection`  
+    Method are now available as:   
+    `xSelection.get_pattern_track` -> `xPatternSelection.get_pattern_track`  
+    `xSelection.get_pattern_column` -> `xPatternSelection.get_pattern_column`  
+    `xSelection.get_pattern_if_single_track` -> `xPatternSelection.get_pattern_if_single_track`  
+    `xSelection.get_column_in_track` -> `xPatternSelection.get_column_in_track`  
+    `xSelection.get_group_in_pattern` -> `xPatternSelection.get_group_in_pattern`  
+    `xSelection.get_phrase` -> `xPhraseSelection.get_phrase`  
+    `xSelection.get_matrix_selection` -> `xMatrixSelection.get_selection`  
+    `xSelection.get_entire_sequence` -> `xSequencerSelection.get_entire_range`    
+    `xSelection.is_single_column` -> `xPatternSelection.is_single_column`   
+    `xSelection.is_single_track` -> `xPatternSelection.is_single_track`   
     `xSelection.includes_note_columns` -> `xPatternSelection.includes_note_columns`  
     `xSelection.within_sequence_range` --> `xSequencerSelection.within_range`  
     `xSelection.get_lines_in_range` --> `xSequencerSelection.pluck_from_range`  
