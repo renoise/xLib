@@ -10,6 +10,11 @@ Static methods for working with renoise.Sample objects
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xSampleBuffer")
+cLib.require(_xlibroot.."xSampleBufferOperation")
+
 class 'xSample'
 
 --- SAMPLE_CONVERT: misc. channel operations
