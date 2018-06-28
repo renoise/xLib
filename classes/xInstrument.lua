@@ -188,24 +188,6 @@ end
 
 
 ---------------------------------------------------------------------------------------------------
--- [Static] Figure out which samples are mapped to the provided note
--- @return table<number> (sample indices)
-
-function xInstrument.get_samples_mapped_to_note(instr,note)
-  TRACE("xInstrument.get_samples_mapped_to_note(instr,note)",instr,note)
-
-  local rslt = table.create()
-  for sample_idx = 1,#instr.samples do 
-    local sample = instr.samples[sample_idx]
-    if xSampleMapping.within_note_range(note,sample.sample_mapping) then
-      rslt:insert(sample_idx)
-    end
-  end
-  return rslt
-
-end
-
----------------------------------------------------------------------------------------------------
 -- [Static] Return the slice markers associated with a given sample 
 -- @param instr (renoise.Instrument)
 -- @param sample_idx (number)
