@@ -1,6 +1,35 @@
 # Changelog
 
-## 0.52
+## 0.54 - June 28th, 2018
+
+- new class: xKeyZone, refactored from xInstrument - and expanded
+- xInstrument: new methods `insert_sample`, `clone_sample`
+- Change `xSongSettings` -> `xPersistentSettings` - support instr. comments
+- `xSample` - refactor sample buffer / operations into separate classes
+- Fixed: `xPhraseManager.delete_selected_phrase_mapping` - resolve mapping, not phrase
+
+## 0.53 - Apr 2, 2018
+
+- `xLinePattern` - ensure that `visible_only` applies everywhere
+- `xLinePattern.set_effect_column_command` - return the column
+- `xPhrase.get_line_from_cursor` - fix value when last line in phrase
+- `xSample.get_buffer_frame_by_notepos` : obtain fraction from line 
+- `xLinePattern` - use new syntax (`amount_value`)
+- `xCursorPos` : make it clear that line can be fractional
+- `xPhrase.get_line_from_cursor` :  apply delay column to result
+- `xLinePattern` - make table key names returned by `get_effect_XX ` more descriptive
+- `xLinePattern.get_effect_column_command` - allow it to search all columns
+- `xLinePattern.get_available_effect_column` - allow optional start column for search
+- `xLinePattern.set_effect_column_command` - don't search note cols if no column index
+- `xLinePattern` - method for retrieving first effect column + writing effect commands
+- `xPhrase` - method for determining line from pattern position
+- `xLinePattern.get_effect_command`: include `xEffectColumn.TYPE` in result
+- `xInstrument.get_selected_phrase_index` - get selected phrase index in any instr.
+- `xParameterAutomation` - include "inverted" line boundary
+- `xAudioDeviceAutomation` - add `number_of_lines` method
+- `xEnvelope` - add `number_of_lines` method
+
+## 0.52 - Feb 22, 2018
 
 - Specify dependencies within classes, using `cLib.require()`
 - Make offline automation classes extend from cPersistence
