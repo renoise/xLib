@@ -219,7 +219,7 @@ function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,ra
       TRACE("*** error message",err)
     end    
   }
-  bop.run()
+  bop:run()
 
   --return new_sample
 
