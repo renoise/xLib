@@ -154,7 +154,7 @@ end
 -- @param range (table) source start/end frames
 
 function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,range)
-  TRACE("xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action)",instr,sample_idx,bit_depth,channel_action)
+  TRACE("xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action)",instr_idx,sample_idx,bit_depth,channel_action)
 
   local instr = rns.instruments[instr_idx]
   assert(type(instr)=="Instrument")
