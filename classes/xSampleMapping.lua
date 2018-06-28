@@ -28,3 +28,9 @@ function xSampleMapping.within_note_range(note,mapping)
   return (note >= rng[1]) and (note <= rng[2]) 
 end
 
+---------------------------------------------------------------------------------------------------
+
+function xSampleMapping.has_full_note_range(mapping)
+  local rng = mapping.note_range
+  return (rng[1] == 0 and rng[2] == 199)
+end
