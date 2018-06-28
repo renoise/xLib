@@ -149,7 +149,7 @@ end
 -- TODO: use buffer operations
 -- @param instr (renoise.Instrument)
 -- @param sample_idx (int)
--- @param bit_depth (xSample.BIT_DEPTH)
+-- @param bit_depth (xSampleBuffer.BIT_DEPTH)
 -- @param channel_action (xSample.SAMPLE_CONVERT)
 -- @param range (table) source start/end frames
 
