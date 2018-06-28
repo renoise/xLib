@@ -146,12 +146,12 @@ end
 
 ----------------------------------------------------------------------------------------------------
 -- convert sample: change bit-depth, perform channel operations, crop etc.
--- TODO: use buffer operations
--- @param instr (renoise.Instrument)
+-- @param instr_idx (int)
 -- @param sample_idx (int)
 -- @param bit_depth (xSampleBuffer.BIT_DEPTH)
 -- @param channel_action (xSample.SAMPLE_CONVERT)
 -- @param range (table) source start/end frames
+-- @param callback (function) return resulting sample 
 
 function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,range)
   TRACE("xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action)",instr_idx,sample_idx,bit_depth,channel_action)
@@ -208,11 +208,20 @@ function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,ra
     sample_index = sample_idx,
     operations = {
       do_process
-    }
+    },
+    on_complete = function(_bop_)
+      print(">>> on_complete",_bop_)
+      --local buffer = _bop_.buffer 
+      --local sample = _bop_.sample
+      callback(_bop_.sample)
+    end,
+    on_error = function(err)
+      TRACE("*** error message",err)
+    end    
   }
+  bop.run()
 
-
-  return new_sample
+  --return new_sample
 
 end
 
