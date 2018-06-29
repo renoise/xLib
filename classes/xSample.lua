@@ -48,15 +48,17 @@ function xSample.get_display_name(sample,sample_idx)
 end
 
 ---------------------------------------------------------------------------------------------------
--- set sample loop to entire range 
+-- set sample loop to entire range, optionally set loop mode (else OFF)
 -- @param sample (renoise.Sample)
+-- @param [loop_mode] (renoise.Sample.LOOP_MODE_X)
 
-function xSample.set_loop_all(sample)
-  TRACE("xSample.set_loop_all()",sample)
+function xSample.set_loop_all(sample,loop_mode)
+  TRACE("xSample.set_loop_all()",sample,loop_mode)
   assert(type(sample)=="Sample")
   local buffer = xSample.get_sample_buffer(sample)
   if buffer then 
     xSample.set_loop_pos(sample,1,buffer.number_of_frames)
+    sample.loop_mode = loop_mode or renoise.Sample.LOOP_MODE_OFF
   end
 end
 
@@ -423,17 +425,3 @@ function xSample.get_beatsynced_note(bpm,sample)
 
 end
 
----------------------------------------------------------------------------------------------------
--- initialize loop to full range, using the provided mode
-
-function xSample.initialize_loop(sample,loop_mode)
-
-  local num_frames = 0
-  if sample.sample_buffer.has_sample_data then
-    num_frames = sample.sample_buffer.number_of_frames
-  end
-  sample.loop_start = 1
-  sample.loop_end = num_frames or 1
-  sample.loop_mode = loop_mode or renoise.Sample.LOOP_MODE_OFF
-
-end
