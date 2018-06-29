@@ -24,6 +24,7 @@ Use this class to
 
 --cLib.require(_clibroot.."cDocument")
 cLib.require(_xlibroot.."xKeyZone")
+cLib.require(_xlibroot.."xInstrument")
 
 class 'xSampleBufferOperation'
 
