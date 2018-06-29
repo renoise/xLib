@@ -157,13 +157,14 @@ end
 -- convert sample: change bit-depth, perform channel operations, crop etc.
 -- @param instr_idx (int)
 -- @param sample_idx (int)
--- @param bit_depth (xSampleBuffer.BIT_DEPTH)
--- @param channel_action (xSample.SAMPLE_CONVERT)
--- @param range (table) source start/end frames
+-- @param args (table)
+--  bit_depth (xSampleBuffer.BIT_DEPTH)
+--  channel_action (xSample.SAMPLE_CONVERT)
+--  range (table) optional, {start_frame,end_frame}
 -- @param callback (function) return resulting sample 
 
-function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,range)
-  TRACE("xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action)",instr_idx,sample_idx,bit_depth,channel_action)
+function xSample.convert_sample(instr_idx,sample_idx,args,callback)
+  TRACE("xSample.convert_sample(instr_idx,sample_idx,args,callback)",instr_idx,sample_idx,args,callback)
 
   local instr = rns.instruments[instr_idx]
   assert(type(instr)=="Instrument")
@@ -175,14 +176,20 @@ function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,ra
   if not buffer.has_sample_data then
     return false
   end
+  
+  if not args.range then 
+    args.range = {
+      start_frame = 1,
+      end_frame = buffer.number_of_frames,
+    }
+  end 
 
-  local num_channels = (channel_action == xSample.SAMPLE_CONVERT.STEREO) and 2 or 1
-  local num_frames = (range) and (range.end_frame-range.start_frame+1) or buffer.number_of_frames
-  --print(">>> num_frames,number_of_frames",num_frames,buffer.number_of_frames)
+  local num_channels = (args.channel_action == xSample.SAMPLE_CONVERT.STEREO) and 2 or 1
+  local num_frames = args.range.end_frame-args.range.start_frame+1
 
   -- only when copying single channel 
   local channel_idx = 1 
-  if(channel_action == xSample.SAMPLE_CONVERT.MONO_RIGHT) then
+  if(args.channel_action == xSample.SAMPLE_CONVERT.MONO_RIGHT) then
     channel_idx = 2
   end
   
@@ -191,12 +198,12 @@ function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,ra
   local do_process = function(new_buffer)
     local f = nil
     local new_f_idx = 1
-    local from_idx = range.start_frame
-    local to_idx = range.start_frame+num_frames-1
+    local from_idx = args.range.start_frame
+    local to_idx = args.range.start_frame+num_frames-1
     --new_buffer:prepare_sample_data_changes()
   
     for f_idx = from_idx,to_idx do
-      if(channel_action == xSample.SAMPLE_CONVERT.MONO_MIX) then
+      if(args.channel_action == xSample.SAMPLE_CONVERT.MONO_MIX) then
         -- mix stereo to mono signal
         -- TODO 
       else
@@ -212,9 +219,11 @@ function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,ra
     end
   end
 
-  local bop = xSampleBufferOperation{
+  xSampleBufferOperation.run({
     instrument_index = instr_idx,
     sample_index = sample_idx,
+    force_bit_depth = args.bit_depth,
+    force_frames = num_frames,
     operations = {
       do_process
     },
@@ -227,10 +236,7 @@ function xSample.convert_sample(instr_idx,sample_idx,bit_depth,channel_action,ra
     on_error = function(err)
       TRACE("*** error message",err)
     end    
-  }
-  bop:run()
-
-  --return new_sample
+  })
 
 end
 
