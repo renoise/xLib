@@ -32,5 +32,5 @@ end
 
 function xSampleMapping.has_full_note_range(mapping)
   local rng = mapping.note_range
-  return (rng[1] == 0 and rng[2] == 199)
+  return (rng[1] == 0 and rng[2] == 119)
 end
