@@ -12,6 +12,7 @@ Static methods for working with renoise.Sample objects
 
 --=================================================================================================
 
+cLib.require(_xlibroot.."xNoteColumn")
 cLib.require(_xlibroot.."xSampleBuffer")
 cLib.require(_xlibroot.."xSampleBufferOperation")
 
@@ -33,6 +34,7 @@ xSample.SAMPLE_CONVERT = {
 
 ---------------------------------------------------------------------------------------------------
 -- get sample name, as it appears in the sample-list (untitled samples included)
+-- @param sample (renoise.Sample)
 -- @return string
 
 function xSample.get_display_name(sample,sample_idx)
@@ -47,6 +49,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- set sample loop to entire range 
+-- @param sample (renoise.Sample)
 
 function xSample.set_loop_all(sample)
   TRACE("xSample.set_loop_all()",sample)
@@ -72,6 +75,9 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- set sample loop - fit to range, allow end before start (flip)
+-- @param sample (renoise.Sample)
+-- @param start_pos (int)
+-- @param end_pos (int)
 
 function xSample.set_loop_pos(sample,start_pos,end_pos)
   TRACE("xSample.set_loop_pos(sample,start_pos,end_pos)",sample,start_pos,end_pos)
@@ -81,8 +87,6 @@ function xSample.set_loop_pos(sample,start_pos,end_pos)
     return
   end 
 
-  local is_looped = (sample.loop_mode ~= renoise.Sample.LOOP_MODE_OFF)
-
   -- flip start/end if needed 
   local start_pos,end_pos = math.min(start_pos,end_pos),math.max(start_pos,end_pos)
 
@@ -90,30 +94,33 @@ function xSample.set_loop_pos(sample,start_pos,end_pos)
   start_pos = math.max(1,start_pos)
   end_pos = math.min(buffer.number_of_frames,end_pos)
 
-  if not is_looped then 
-    sample.loop_end = start_pos
-    sample.loop_start = end_pos
-  else 
-    if (start_pos > sample.loop_end) then
-      sample.loop_end = end_pos
-      sample.loop_start = start_pos
-    else
-      sample.loop_start = start_pos
-      sample.loop_end = end_pos
-    end
+  -- take care that we set the smallest position first
+  -- (as we set start/end individually)
+  if (start_pos > sample.loop_end) then
+    sample.loop_end = end_pos
+    sample.loop_start = start_pos
+  else
+    sample.loop_start = start_pos
+    sample.loop_end = end_pos
   end
+
+  --print("set_loop_pos - loop_start",sample.loop_start)
+  --print("set_loop_pos - loop_end",sample.loop_end)
+
 end
 
 ---------------------------------------------------------------------------------------------------
 -- match sample loop with buffer selection 
+-- @param sample (renoise.Sample)
+-- @param [loop_mode] (renoise.Sample.LOOP_MODE_X)
 
-function xSample.set_loop_to_selection(sample)
+function xSample.set_loop_to_selection(sample,loop_mode)
   TRACE("xSample:set_loop_to_selection(sample)",sample)
   local buffer = xSample.get_sample_buffer(sample) 
   if buffer then 
     xSample.set_loop_pos(sample,buffer.selection_start,buffer.selection_end)  
-    if (sample.loop_mode == renoise.Sample.LOOP_MODE_OFF) then 
-      sample.loop_mode = renoise.Sample.LOOP_MODE_FORWARD
+    if loop_mode then 
+      sample.loop_mode = loop_mode
     end
   end 
 end
