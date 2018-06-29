@@ -267,6 +267,7 @@ end
 function xSampleBuffer.get_bit_depth(buffer)
   TRACE("xSampleBuffer.get_bit_depth(buffer)",buffer)
 
+  assert(type(buffer)=="SampleBuffer")
   assert(buffer.has_sample_data,"Sample buffer is empty")
 
   local function reverse(t)
@@ -760,6 +761,14 @@ end
 -- Processing methods 
 ---------------------------------------------------------------------------------------------------
 -- create waveform from waveform/modulator function 
+-- fn 
+-- buffer
+-- [mod_fn]
+-- [selection_start]
+-- [selection_end]
+-- [selected_channel]
+-- [number_of_channels]
+-- [number_of_frames]
 
 function xSampleBuffer.create_wave_fn(...)
   TRACE("xSampleBuffer.create_wave_fn(...)")
