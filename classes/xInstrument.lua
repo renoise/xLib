@@ -10,6 +10,10 @@ Static methods for dealing with renoise.Instrument
 
 --]]
 
+cLib.require(_clibroot.."cReflection")
+cLib.require(_xlibroot.."xSampleMapping")
+cLib.require(_xlibroot.."xScale")
+
 class 'xInstrument'
 
 ---------------------------------------------------------------------------------------------------
@@ -346,20 +350,18 @@ end
 --  * can convert: provide custom sample_rate/bit_depth/channels/frames
 -- @param instr (renoise.Instrument)
 -- @param sample_idx (number), source sample index 
--- @param dest_sample_idx (number), insert sample at this index [optional]
--- @param sample_rate (xSampleBuffer.SAMPLE_RATE)
--- @param bit_depth (xSampleBuffer.BIT_DEPTH)
--- @param num_channels (number)
--- @param num_frames (number)
+-- @param args (table)
+--  dest_sample_idx (number), insert sample at this index [optional]
+--  sample_rate (xSampleBuffer.SAMPLE_RATE) [optional]
+--  bit_depth (xSampleBuffer.BIT_DEPTH) [optional]
+--  num_channels (number) [optional]
+--  num_frames (number) [optional]
 -- @return (...) or nil
 --  number (sample index) 
 --  boolean (drumkit mode)
 
-function xInstrument.clone_sample(
-  instr,sample_idx,dest_sample_idx,
-  sample_rate,bit_depth,num_channels,num_frames)
-  TRACE("xInstrument.clone_sample()")
-  -- num_frames,num_channel,
+function xInstrument.clone_sample(instr,sample_idx,args)
+  TRACE("xInstrument.clone_sample(instr,sample_idx,args)",instr,sample_idx,args)
 
   assert(type(instr)=="Instrument")
   assert(type(sample_idx)=="number")
@@ -373,13 +375,15 @@ function xInstrument.clone_sample(
   if not buffer then 
     error("Expected a sample-buffer containing data")
   end 
-  sample_rate = sample_rate or buffer.sample_rate
-  bit_depth = bit_depth or buffer.bit_depth
-  num_channels = num_channels or buffer.number_of_channels
-  num_frames = num_frames or buffer.number_of_frames
+  
+  -- initialize arguments (provide defaults if needed)
+  local sample_rate = args.sample_rate or buffer.sample_rate
+  local bit_depth = args.bit_depth or buffer.bit_depth
+  local num_channels = args.num_channels or buffer.number_of_channels
+  local num_frames = args.num_frames or buffer.number_of_frames
+  local dest_sample_idx = args.dest_sample_idx and args.dest_sample_idx or sample_idx + 1
 
   -- create sample
-  dest_sample_idx = dest_sample_idx and dest_sample_idx or sample_idx + 1
   instr:insert_sample_at(dest_sample_idx)
   local new_sample = instr.samples[dest_sample_idx]
   if not new_sample then 
@@ -390,7 +394,8 @@ function xInstrument.clone_sample(
   -- detect if instrument is in drumkit mode
   -- (usually, a newly inserted sample occupies the entire keyzone...)
   local drumkit_mode = not xSampleMapping.has_full_note_range(new_sample.sample_mapping)
-  --print("drumkit_mode",drumkit_mode)
+  print("clone_sample - drumkit_mode",drumkit_mode)
+  rprint(new_sample.sample_mapping.note_range)
 
   -- initialize some properties before copying...
   --new_sample.loop_start = 1
