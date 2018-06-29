@@ -28,6 +28,7 @@ before replacing the original sample.
 
 --=================================================================================================
 require (_clibroot.."cDocument")
+require (_clibroot.."cWaveform")
 
 class 'xSampleBuffer' (cDocument)
 
