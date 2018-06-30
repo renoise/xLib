@@ -20,7 +20,7 @@ Use this class to
 
 ## How to use 
 
-This class exposes just one public function, `invoke()`
+This class exposes just one public function, `run()`
   
 ## Arguments 
 
@@ -72,7 +72,6 @@ function xSampleBufferOperation.run(args)
   local temp = xSampleBufferOperation._prepare(args)
 
   for k,v in ipairs(args.operations) do 
-    --print("run operation",k,v,type(v))
     if (type(v)=="function") then 
       -- anonymous function (no arguments)
       local success,err = pcall(function()
@@ -211,7 +210,6 @@ function xSampleBufferOperation._finalize(args,temp)
   end 
 
   if (type(args.on_complete)=="function") then 
-    print("on_complete")
     args.on_complete({
       sample = temp.new_sample,
       sample_index = temp.new_sample_index,
