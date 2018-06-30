@@ -316,7 +316,7 @@ end
 
 function xInstrument.insert_sample(
   instr,sample_idx,sample_rate,bit_depth,num_channels,num_frames)
-  TRACE("xInstrument.insert_sample()",instr,sample_idx,sample_rate,bit_depth,num_channels,um_frames)
+  TRACE("xInstrument.insert_sample()",instr,sample_idx,sample_rate,bit_depth,num_channels,num_frames)
 
   assert(type(instr)=="Instrument")
   assert(type(sample_idx)=="number")
