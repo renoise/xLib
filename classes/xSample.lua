@@ -184,14 +184,21 @@ function xSample.convert_sample(instr_idx,sample_idx,args,callback)
     }
   end 
 
-  local num_channels = (args.channel_action == xSample.SAMPLE_CONVERT.STEREO) and 2 or 1
-  local num_frames = args.range.end_frame-args.range.start_frame+1
-
-  -- only when copying single channel 
+  local num_frames = args.range.end_frame - args.range.start_frame + 1
+  local num_channels = buffer.number_of_channels
   local channel_idx = 1 
-  if(args.channel_action == xSample.SAMPLE_CONVERT.MONO_RIGHT) then
-    channel_idx = 2
-  end
+  
+  if args.channel_action then 
+    num_channels = (args.channel_action == xSample.SAMPLE_CONVERT.STEREO) and 2 or 1
+    -- only when copying single channel 
+    if (args.channel_action == xSample.SAMPLE_CONVERT.MONO_RIGHT) then
+      channel_idx = 2
+    end
+  end 
+  
+  print("num_channels",num_channels)
+  print("channel_idx",channel_idx)
+
   
   -- change sample 
 
@@ -200,10 +207,15 @@ function xSample.convert_sample(instr_idx,sample_idx,args,callback)
     local new_f_idx = 1
     local from_idx = args.range.start_frame
     local to_idx = args.range.start_frame+num_frames-1
-    --new_buffer:prepare_sample_data_changes()
   
     for f_idx = from_idx,to_idx do
-      if(args.channel_action == xSample.SAMPLE_CONVERT.MONO_MIX) then
+      if not args.channel_action then 
+        -- copy channels as they are 
+        new_buffer:set_sample_data(1,new_f_idx,buffer:sample_data(1,f_idx))
+        if (num_channels == 2) then
+          new_buffer:set_sample_data(2,new_f_idx,buffer:sample_data(2,f_idx))
+        end      
+      elseif (args.channel_action == xSample.SAMPLE_CONVERT.MONO_MIX) then
         -- mix stereo to mono signal
         -- TODO 
       else
@@ -215,7 +227,7 @@ function xSample.convert_sample(instr_idx,sample_idx,args,callback)
           new_buffer:set_sample_data(2,new_f_idx,f)
         end
       end
-      new_f_idx = new_f_idx+1
+      new_f_idx = new_f_idx + 1
     end
   end
 
@@ -223,14 +235,13 @@ function xSample.convert_sample(instr_idx,sample_idx,args,callback)
     instrument_index = instr_idx,
     sample_index = sample_idx,
     force_bit_depth = args.bit_depth,
+    force_channels = num_channels,
     force_frames = num_frames,
     operations = {
       do_process
     },
     on_complete = function(_bop_)
       print(">>> on_complete",_bop_)
-      --local buffer = _bop_.buffer 
-      --local sample = _bop_.sample
       callback(_bop_.sample)
     end,
     on_error = function(err)
