@@ -1,13 +1,21 @@
 # Changelog
 
+## 0.55 - in progress
+- `xSample.convert_sample`: fix issue where stereo becomes mono (no channel action)
+- `xSampleBufferOperation`: switch to purely static impl.
+- `xSampleMapping`: add `has_full_note_range` method
+- `xSample`: use buffer operation
+- `xColumns`: fix missing track index when jumping to next/previous
+- (various) add missing require statements
+
 ## 0.54 - June 28th, 2018
 
-- New class: `xKeyZone`, contains refactored methods:
+- New class: `xKeyZone`, contains refactored methods
   `xInstrument.get_samples_mapped_to_note` -> `xKeyZone.get_samples_mapped_to_note`
   `xSampleMapping.shift_keyzone_by_semitones` -> `xKeyZone.shift_by_semitones`
 - xInstrument: new methods `insert_sample`, `clone_sample`
 - Change `xSongSettings` -> `xPersistentSettings` - support instr. comments
-- New class: `xSampleBuffer` - contains refactored methods:
+- New class: `xSampleBuffer` - contains refactored methods and properties
   `xSample.get_bit_depth` -> `xSampleBuffer.get_bit_depth`
   `xSample.bits_to_xbits` -> `xSampleBuffer.bits_to_xbits`
   `xSample.get_channel_info` -> `xSampleBuffer.get_channel_info`
@@ -46,10 +54,10 @@
 ## 0.52 - Feb 22, 2018
 
 - Specify dependencies within classes, using `cLib.require()`
-- Make offline automation classes extend from cPersistence
-- xEnvelope, refactored from xParameterAutomation (now a static class)
-- xSongPos: (fix) return when going past song boundary
-- xLib: specify constants for sliced processing
+- Make offline automation classes extend from `cPersistence`
+- `xEnvelope`, refactored from `xParameterAutomation` (now a static class)
+- `xSongPos`: (fix) return when going past song boundary
+- `xLib`: specify constants for sliced processing
 
 ## 0.51
 
@@ -75,5 +83,5 @@
 
 ## 0.5
 
-- xPhrase: new DOC_PROPS implementation
+- `xPhrase`: new DOC_PROPS implementation
 - Standalone version
