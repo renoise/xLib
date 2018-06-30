@@ -43,8 +43,8 @@ function xKeyZoneLayout:__init(...)
   self.note_min = args.note_min or xKeyZone.DEFAULT_NOTE_MIN
   self.note_max = args.note_max or xKeyZone.DEFAULT_NOTE_MAX
   self.vel_steps = args.vel_steps or xKeyZone.DEFAULT_VEL_STEPS
-  self.vel_min = args.vel_min or xSampleMapping.MIN_VEL
-  self.vel_max = args.vel_max or xSampleMapping.MAX_VEL
+  self.vel_min = args.vel_min or xSampleMapping.MIN_VELOCITY
+  self.vel_max = args.vel_max or xSampleMapping.MAX_VELOCITY
   self.layer = args.layer or xSampleMapping.DEFAULT_LAYER
   self.map_velocity_to_volume = args.map_velocity_to_volume or xSampleMapping.DEFAULT_VEL_TO_VOL
   self.map_key_to_pitch = args.map_key_to_pitch or xSampleMapping.DEFAULT_KEY_TO_PITCH
@@ -247,7 +247,7 @@ function xKeyZone.create_multisample_layout(layout,instr)
         local mapping = xKeyZone.find_mapping(memoized,note_rng,vel_rng)
         sample = mapping and mapping.sample
       end
-
+      print("rslt",rslt)
       table.insert(rslt,xSampleMapping{
         layer = layout.layer,
         base_note = base_notes[k][1],
