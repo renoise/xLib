@@ -108,6 +108,19 @@ function xSampleBuffer:__init(...)
 end
 
 ---------------------------------------------------------------------------------------------------
+
+function xSampleBuffer:get_default_properties()
+  
+  return {
+    bit_depth = xSampleBuffer.DEFAULT_BIT_DEPTH,
+    sample_rate = xSampleBuffer.DEFAULT_SAMPLE_RATE,
+    number_of_channels = xSampleBuffer.DEFAULT_NUM_CHANNELS,
+    number_of_frames = xSampleBuffer.DEFAULT_NUM_FRAMES,
+  }
+  
+end  
+
+---------------------------------------------------------------------------------------------------
 -- Selections
 ---------------------------------------------------------------------------------------------------
 -- select everything 
