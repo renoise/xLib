@@ -205,7 +205,7 @@ end
 
 function xNoteColumn:set_volume_value(val)
   self._volume_value = val
-  self._volume_string = xNoteColumn.column_value_to_string(val,"..") 
+  self._volume_string = xNoteColumn.column_value_to_string(val) 
 end
 
 function xNoteColumn:get_volume_string()
@@ -214,7 +214,7 @@ end
 
 function xNoteColumn:set_volume_string(str)
   self._volume_string = str
-  self._volume_value = xNoteColumn.column_string_to_value(str,xLinePattern.EMPTY_VALUE)
+  self._volume_value = xNoteColumn.column_string_to_value(str)
 end
 
 -------------------------------------------------------------------------------
@@ -225,7 +225,7 @@ end
 
 function xNoteColumn:set_panning_value(val)
   self._panning_value = val
-  self._panning_string = xNoteColumn.column_value_to_string(val,"..") 
+  self._panning_string = xNoteColumn.column_value_to_string(val) 
 end
 
 function xNoteColumn:get_panning_string()
@@ -234,7 +234,7 @@ end
 
 function xNoteColumn:set_panning_string(str)
   self._panning_string = str
-  self._panning_value = xNoteColumn.column_string_to_value(str,xLinePattern.EMPTY_VALUE)
+  self._panning_value = xNoteColumn.column_string_to_value(str)
 end
 
 -------------------------------------------------------------------------------
@@ -245,7 +245,7 @@ end
 
 function xNoteColumn:set_delay_value(val)
   self._delay_value = val
-  self._delay_string = xNoteColumn.delay_value_to_string(val,"..") 
+  self._delay_string = xNoteColumn.delay_value_to_string(val) 
 end
 
 function xNoteColumn:get_delay_string()
@@ -371,7 +371,7 @@ end
 
 function xNoteColumn.instr_string_to_value(str)
   TRACE("xNoteColumn.instr_string_to_value(str)",str)
-  return (str == "..") and 255 or tonumber(str)
+  return (str == "..") and 255 or tonumber("0x"..str) or error("Invalid value")
 end
 
 function xNoteColumn.instr_value_to_string(val)
@@ -385,7 +385,7 @@ end
 
 function xNoteColumn.delay_string_to_value(str)
   TRACE("xNoteColumn.delay_string_to_value(str)",str)
-  return (str == "..") and 0 or tonumber(str)
+  return (str == "..") and 0 or tonumber("0x"..str) or error("Invalid value")
 end
 -------------------------------------------------------------------------------
 -- @param val (int), between 0-255
@@ -393,21 +393,20 @@ end
 
 function xNoteColumn.delay_value_to_string(val)
   TRACE("xNoteColumn.delay_value_to_string(val)",val)
-  return (val == 255) and ".." or ("%.2X"):format(val)
+  return (val == 0) and ".." or ("%.2X"):format(val)
 end
 
 -------------------------------------------------------------------------------
 -- convert vol/panning into a numeric value
 -- (everything above 0x80 is interpreted as an fx command)
 -- @param str_val (string), for example "40", "G5" or ".."
--- @param empty (int), the default empty value to return
 -- @return int
 
-function xNoteColumn.column_string_to_value(str_val,empty)
-  TRACE("xNoteColumn.column_string_to_value(str_val,empty)",str_val,empty)
+function xNoteColumn.column_string_to_value(str_val)
+  TRACE("xNoteColumn.column_string_to_value(str_val)",str_val)
 
   if (str_val == "..") then
-    return empty
+    return xLinePattern.EMPTY_VALUE 
   end
 
   local numeric = tonumber("0x"..str_val)
@@ -422,14 +421,13 @@ end
 -------------------------------------------------------------------------------
 -- convert instr/vol/panning into a numeric value
 -- @param val (int), 0-127, 255==Empty or 0-65535 when value is > 0x80
--- @param empty (string), the default empty value to return
 -- @return value
 
-function xNoteColumn.column_value_to_string(val,empty)
-  TRACE("xNoteColumn.column_value_to_string(val,empty)",val,empty)
+function xNoteColumn.column_value_to_string(val)
+  TRACE("xNoteColumn.column_value_to_string(val)",val)
 
   if (val == xLinePattern.EMPTY_VALUE) then
-    return empty
+    return ".."
   end
 
   local numeric = val <= 0x80
