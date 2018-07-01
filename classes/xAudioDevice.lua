@@ -344,8 +344,8 @@ end
 -- @param track_idx (number)
 -- @param device_idx (number)
 -- @param seq_range (xSequencerSelection), output range
--- @param apply_mode (xParameterAutomation.APPLY_MODE)
--- @param yield_at (xLib.YIELD_AT), for sliced processing
+-- @param [apply_mode] (xParameterAutomation.APPLY_MODE)
+-- @param [yield_at] (xLib.YIELD_AT), for sliced processing
 -- @return boolean, false when failed 
 -- @return string, error message when failed
 
@@ -354,14 +354,13 @@ function xAudioDevice.paste_automation(device_auto,track_idx,device_idx,seq_rang
 
   assert(type(device_auto)=="xAudioDeviceAutomation")
   assert(type(seq_range)=="table")
-  assert(type(apply_mode)=="number")
+  --assert(type(apply_mode)=="number")
 
   local rns_track = rns.tracks[track_idx]
   assert(type(rns_track)=="Track")
 
   local rns_device = rns_track.devices[device_idx]
   assert(type(rns_device) == "AudioDevice")
-
 
   -- check for device compatibility
   if not device_auto:compatible_with_device_path(rns_device) then 
