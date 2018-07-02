@@ -56,7 +56,8 @@ xLinePattern.EFFECT_CHARS = {
 -- @param effect_columns (table, xEffectColumn descriptor)
 
 function xLinePattern:__init(note_columns,effect_columns)
-
+  TRACE("xLinePattern:__init(note_columns,effect_columns)",note_columns,effect_columns)
+  
   --- table<xNoteColumn>
   self.note_columns = table.create()
 
@@ -65,19 +66,7 @@ function xLinePattern:__init(note_columns,effect_columns)
 
   -- initialize -----------------------
 
-  if note_columns then
-    for _,v in ipairs(note_columns) do
-      self.note_columns:insert(v)
-    end
-  end
-
-  if effect_columns then
-    for _,v in ipairs(effect_columns) do
-      self.effect_columns:insert(v)
-    end
-  end
-
-  self:apply_descriptor(self.note_columns,self.effect_columns)
+  self:apply_descriptor(note_columns,effect_columns)
 
 end
 
@@ -87,34 +76,24 @@ end
 -- @param effect_columns (xEffectColumn or table)
 
 function xLinePattern:apply_descriptor(note_columns,effect_columns)
-
-  if note_columns then
-    for k,note_col in ipairs(note_columns) do
-      if (type(note_col) == "table") and
-        not table.is_empty(note_col)
-      then
-        -- convert into xNoteColumn 
-        self.note_columns[k] = xNoteColumn(note_col)
-      end
+  TRACE("xLinePattern:apply_descriptor(note_columns,effect_columns)",note_columns,effect_columns)
+  
+  if not table.is_empty(note_columns) then
+    local _,column_count = cTable.bounds(note_columns)
+    print("_,column_count",_,column_count)
+    for k = 1,math.min(xLinePattern.MAX_NOTE_COLUMNS,column_count) do
+      self.note_columns[k] = xNoteColumn(note_columns[k])      
     end
-    for i = #note_columns+1, #self.note_columns do
-      self.note_columns[i] = {}
+    print(">>> got here 8")
+  end
+  if not table.is_empty(effect_columns) then
+    local _,column_count = cTable.bounds(effect_columns)
+    for k = 1,math.min(xLinePattern.MAX_EFFECT_COLUMNS,column_count) do
+      self.effect_columns[k] = xEffectColumn(effect_columns[k])
     end
   end
-  if effect_columns then
-    for k,fx_col in ipairs(effect_columns) do
-      if (type(fx_col) == "table") and 
-        not table.is_empty(fx_col)
-      then
-        -- convert into xEffectColumn
-        self.effect_columns[k] = xEffectColumn(fx_col)
-      end
-    end
-    for i = #effect_columns+1, #self.effect_columns do
-      self.effect_columns[i] = {}
-    end
 
-  end
+  print(">>> got here 9")
 
 end
 
@@ -690,7 +669,8 @@ end
 function xLinePattern:__tostring()
 
   return type(self)
-    ..":column#1="..tostring(self.note_columns[1])
+    .."#note_columns="..tostring(#self.note_columns)
+    .."#effect_columns="..tostring(#self.effect_columns)
 
 end
 
