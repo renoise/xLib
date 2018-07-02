@@ -56,8 +56,7 @@ xLinePattern.EFFECT_CHARS = {
 -- @param effect_columns (table, xEffectColumn descriptor)
 
 function xLinePattern:__init(note_columns,effect_columns)
-  TRACE("xLinePattern:__init(note_columns,effect_columns)",note_columns,effect_columns)
-  
+
   --- table<xNoteColumn>
   self.note_columns = table.create()
 
@@ -76,24 +75,20 @@ end
 -- @param effect_columns (xEffectColumn or table)
 
 function xLinePattern:apply_descriptor(note_columns,effect_columns)
-  TRACE("xLinePattern:apply_descriptor(note_columns,effect_columns)",note_columns,effect_columns)
-  
+
   if not table.is_empty(note_columns) then
     local _,column_count = cTable.bounds(note_columns)
-    print("_,column_count",_,column_count)
     for k = 1,math.min(xLinePattern.MAX_NOTE_COLUMNS,column_count) do
       self.note_columns[k] = xNoteColumn(note_columns[k])      
     end
-    print(">>> got here 8")
   end
   if not table.is_empty(effect_columns) then
     local _,column_count = cTable.bounds(effect_columns)
     for k = 1,math.min(xLinePattern.MAX_EFFECT_COLUMNS,column_count) do
       self.effect_columns[k] = xEffectColumn(effect_columns[k])
     end
-  end
 
-  print(">>> got here 9")
+  end
 
 end
 
