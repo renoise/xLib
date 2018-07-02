@@ -50,7 +50,7 @@ xLine.EMPTY_XLINE = {
 
 ---------------------------------------------------------------------------------------------------
 -- [Constructor] accepts a single argument to use as class initializer
--- @param args (table)
+-- @param args (table or xLine)
 
 function xLine:__init(args)
 
@@ -60,17 +60,17 @@ function xLine:__init(args)
   --- xLineAutomation
   self.automation = nil
 
+  -- getter/setter --------------------
+  
+  self.note_columns = property(self.get_note_columns)
+  self.effect_columns = property(self.get_effect_columns)
+  
   -- initialize -----------------------
 
-  if args.note_columns or args.effect_columns then
-    self.pattern_line = xLinePattern(args.note_columns,args.effect_columns)
-
-    -- these tables are used 'outside' the class to access/set values,
-    -- will need a call to apply_descriptor() afterwards
-    self.note_columns = self.pattern_line.note_columns
-    self.effect_columns = self.pattern_line.effect_columns
-
-  end
+  self.pattern_line = xLinePattern(
+    args.note_columns,
+    args.effect_columns
+  )
 
   if args.automation then
     self.automation = xLineAutomation(args.automation)
@@ -78,6 +78,16 @@ function xLine:__init(args)
 
 end
 
+
+---------------------------------------------------------------------------------------------------
+
+function xLine:get_note_columns()
+  return self.pattern_line.note_columns
+end
+
+function xLine:get_effect_columns()
+  return self.pattern_line.effect_columns
+end
 
 ---------------------------------------------------------------------------------------------------
 -- [Class] Write to pattern/phrase/automation - all defined types of data 
