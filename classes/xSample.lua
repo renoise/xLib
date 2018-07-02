@@ -264,13 +264,14 @@ end
 --  }
 
 function xSample.get_name_tokens(str)
-
+  TRACE("xSample.get_name_tokens(str)",str)
+  
   -- start by assuming it's a plugin
   local matches = str:gmatch("(.*): (.*) %((.*)%)[_%s]?([^_%s]*)[_%s]?([A-Z]*[-#]?[%d]*)")  
   local arg1,arg2,arg3,arg4,arg5 = matches()
 
   -- from end 
-  local arg5_is_note = arg5 and xNoteColumn.note_string_to_value(arg5)
+  local arg5_is_note = (arg5 ~= "") and xNoteColumn.note_string_to_value(arg5)
   local arg4_is_note = arg4 and xNoteColumn.note_string_to_value(arg4)
   local arg4_is_velocity = arg4 and tonumber(arg4)
   if arg5_is_note then
@@ -278,8 +279,8 @@ function xSample.get_name_tokens(str)
       plugin_type = arg1,
       plugin_name = arg2,
       preset_name = arg3,
-      velocity = arg4,
-      note = (arg5 ~= "") and arg5 or nil,
+      velocity = arg4_is_velocity and arg4,
+      note = arg5,
     }
   elseif arg4_is_velocity then
     return {
