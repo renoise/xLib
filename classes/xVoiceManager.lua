@@ -621,7 +621,7 @@ function xVoiceManager:get_lowest()
   TRACE("xVoiceManager:get_lowest()")
 
   local rslt,idx 
-  local pitch = 999
+  local pitch = cLib.HUGE_INT
   for k,v in ipairs(self.voices) do
     if (v.values[1] < pitch) then
       rslt = v
