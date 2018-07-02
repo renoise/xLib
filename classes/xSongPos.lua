@@ -131,7 +131,6 @@ end
 -- @param [bounds_mode], xSongPos.OUT_OF_BOUNDS
 -- @param [loop_boundary], xSongPos.LOOP_BOUNDARY
 -- @param [block_boundary], xSongPos.BLOCK_BOUNDARY
--- @return pos (SongPos) 
 -- @return number, lines travelled 
 
 function xSongPos.increase_by_lines(num_lines,pos,bounds_mode,loop_boundary,block_boundary)
@@ -163,9 +162,10 @@ function xSongPos.increase_by_lines(num_lines,pos,bounds_mode,loop_boundary,bloc
   -- even when we are supposedly spanning multiple 
   -- patterns, block looping might prevent this
   local exiting_blockloop = false
-  if rns.transport.loop_block_enabled then
-    exiting_blockloop = (block_boundary < xSongPos.BLOCK_BOUNDARY.NONE) and
-      xBlockLoop.exiting(seq_idx,line_idx,num_lines) or false
+  if rns.transport.loop_block_enabled 
+    and (block_boundary ~= xSongPos.BLOCK_BOUNDARY.NONE)
+  then
+    exiting_blockloop = xBlockLoop.exiting(seq_idx,line_idx,num_lines) or false
   end
 
   local patt_num_lines = xPatternSequencer.get_number_of_lines(seq_idx)
@@ -178,13 +178,17 @@ function xSongPos.increase_by_lines(num_lines,pos,bounds_mode,loop_boundary,bloc
       seq_idx = seq_idx + 1
       seq_idx,line_idx,done = xSongPos.enforce_boundary("increase",{sequence=seq_idx,line=lines_remaining},bounds_mode,loop_boundary)
       if done then
-        if not seq_idx then 
+        if not seq_idx and (bounds_mode == xSongPos.OUT_OF_BOUNDS.NULL) then 
+          -- reset SongPos
+          pos.line = nil 
+          pos.sequence = nil 
           return
-        end
-        if (bounds_mode == xSongPos.OUT_OF_BOUNDS.CAP) then
+        elseif (bounds_mode == xSongPos.OUT_OF_BOUNDS.CAP) then
           -- reduce num_lines, or travelled will no longer be correct
           num_lines = num_lines - lines_remaining
           done = false
+        else 
+          error("xSongPos: Failed to resolve position")
         end
         break
       end
@@ -267,7 +271,12 @@ function xSongPos.decrease_by_lines(num_lines,pos,bounds_mode,loop_boundary,bloc
       seq_idx,line_idx,done = 
         xSongPos.enforce_boundary("decrease",{sequence=seq_idx,line=lines_remaining},bounds_mode,loop_boundary)
       if done then
-        if (bounds_mode == xSongPos.OUT_OF_BOUNDS.CAP) then
+        if not seq_idx and (bounds_mode == xSongPos.OUT_OF_BOUNDS.NULL) then 
+          -- reset SongPos (UNTESTED)
+          pos.line = nil 
+          pos.sequence = nil 
+          return
+        elseif (bounds_mode == xSongPos.OUT_OF_BOUNDS.CAP) then
           -- reduce num_lines, or travelled will no longer be correct
           num_lines = -1 + num_lines - lines_remaining
           done = false
