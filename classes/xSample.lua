@@ -4,7 +4,7 @@ xSample
 
 --[[--
 
-Static methods for working with renoise.Sample objects
+Class containing methods for working with renoise.Sample objects
 .
 #
 
@@ -32,6 +32,31 @@ xSample.SAMPLE_CONVERT = {
   SWAP = 5,
 }
 
+---------------------------------------------------------------------------------------------------
+-- Constructor
+---------------------------------------------------------------------------------------------------
+-- an xSample instance can be used as a 'virtual' sample, containing some (but not all)
+-- properties that can be specified for a real sample ..
+-- @param (vararg or renoise.Sample)
+
+function xSample:__init(...)
+  TRACE("xSample:__init(...)",...)
+
+  local args = cLib.unpack_args(...)
+  --print("args",rprint(args),type(args))
+
+  -- string
+  self.name = args.name or ""
+
+  -- renoise.renoise.SampleBuffer, xSampleBuffer
+  self.sample_buffer = xSampleBuffer(args.sample_buffer)
+  -- renoise.SampleMapping, xSampleMapping 
+  self.sample_mapping = xSampleMapping(args.sample_mapping)
+
+end
+
+---------------------------------------------------------------------------------------------------
+-- Static methods 
 ---------------------------------------------------------------------------------------------------
 -- get sample name, as it appears in the sample-list (untitled samples included)
 -- @param sample (renoise.Sample)
