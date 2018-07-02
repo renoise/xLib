@@ -144,13 +144,23 @@ function xNoteColumn:__init(args)
 
   
   -- initialize (apply values) ----------------------------
-
-  for token,value in pairs(args) do
-    if (table.find(xNoteColumn.tokens,token)) then
-      self[token] = value
+  
+  if (type(args) == "xNoteColumn") then 
+    -- when providing a class instance, apply using the 'output_tokens'
+    for _,token in pairs(xNoteColumn.output_tokens) do
+      if args[token] then 
+        self[token] = args[token]
+      end
+    end
+  elseif (type(args) == "table") and not table.is_empty(args) then 
+    -- when providing a table, apply using the 'tokens'
+    for _,token in pairs(xNoteColumn.tokens) do
+      if args[token] then 
+        self[token] = args[token]
+      end
     end
   end
-
+  
 end
 
 
