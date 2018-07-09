@@ -106,8 +106,8 @@ function xVoiceRunner:__init(...)
 
   -- internal -------------------------
 
-  --- xVoiceRunnerTemplate, decides which notes to collect (optional)
-  self.template = nil
+  --- table{[note_value]}, decides which notes to collect (optional)
+  self.whitelist = nil
 
   --- bool, set to true when pattern data has changed
   -- (optimize step: skip collection when not needed)
@@ -131,7 +131,7 @@ function xVoiceRunner:__init(...)
   --      [orphaned] = bool or nil        -- set on data with no prior voice (such as when we stop at note-off, note-cut...)
   --      [actual_noteoff_col] = xNoteColumn or nil -- set when note-off/cut is explicit 
   --      [single_line_trigger] = bool or nil -- set when Cx on same line as note (only possible when stop_at_note_cut is true)
-  --      [__skip_template] = bool or nil -- true when the template tell us to ignore this note
+  --      [__skip_run] = bool or nil -- true when the whitelist tell us to ignore this note
   --      [line_idx] =                    -- xNoteColumn
   --      [line_idx] =                    -- xNoteColumn
   --      [line_idx] =                    -- etc...
@@ -418,8 +418,6 @@ function xVoiceRunner:collect(ptrack_or_phrase,collect_mode,selection,trk_idx,se
                 else
                   self.voice_columns[col_idx].offed = true
                 end
-              else 
-                LOG("*** xVoiceRunner: tried to access non-existing voice column")
               end 
             end
 
@@ -431,24 +429,13 @@ function xVoiceRunner:collect(ptrack_or_phrase,collect_mode,selection,trk_idx,se
               voice_run.orphaned = orphaned
             end
 
-            -- if we've got a template, check whether to include this run 
-            --[[
-            if begin_voice_run and has_note_on and self.template then
-              local entries,indices = self.template:get_entries({
-                note_value = note_val,
-                instrument_value = instr_idx-1 
-              })
-              if (#indices > 0) then
-                for k,v in ipairs(entries) do
-                  if not v.active then
-                    voice_run.__skip_template = true
-                    include_as_unique = false
-                    break
-                  end
-                end
+            -- if we've got a whitelist, check whether to include this run 
+            if begin_voice_run and has_note_on and self.whitelist then
+              if not table.find(self.whitelist,note_val) then 
+                voice_run.__skip_run = true
+                include_as_unique = false            
               end
             end
-            ]]
 
           end
 
@@ -474,7 +461,8 @@ function xVoiceRunner:collect(ptrack_or_phrase,collect_mode,selection,trk_idx,se
 
   for col_idx,run_col in pairs(self.voice_runs) do
     for run_idx,run in pairs(run_col) do
-      if run.__skip_template then
+      if run.__skip_run then
+        -- purge unwanted notes 
         self.voice_runs[col_idx][run_idx] = nil
       else
         -- check for (and remove) orphaned data
