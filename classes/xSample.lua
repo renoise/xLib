@@ -12,6 +12,7 @@ Class containing methods for working with renoise.Sample objects
 
 --=================================================================================================
 
+cLib.require(_clibroot.."cConvert")
 cLib.require(_xlibroot.."xNoteColumn")
 cLib.require(_xlibroot.."xSampleBuffer")
 cLib.require(_xlibroot.."xSampleBufferOperation")
@@ -432,8 +433,8 @@ function xSample.get_transposed_frame(note_value,frame,sample)
   TRACE("xSample.get_transposed_frame(note_value,frame,sample)",note_value,frame,sample)
   
   local transposed_note = xSample.get_transposed_note(sample,note_value)
-  local transp_hz = cLib.note_to_hz(transposed_note)
-  local base_hz = cLib.note_to_hz(48) -- middle C-4 note
+  local transp_hz = cConvert.note_to_hz(transposed_note)
+  local base_hz = cConvert.note_to_hz(48) -- middle C-4 note
   local ratio = base_hz / transp_hz
   frame = frame / ratio
   return frame
@@ -457,18 +458,5 @@ function xSample.get_transposed_note(sample,played_note)
   local mapping_note = sample.sample_mapping.base_note
   local sample_transpose = sample.transpose + (sample.fine_tune/128)
   return 48 + played_note - mapping_note + sample_transpose
-end
-
----------------------------------------------------------------------------------------------------
--- obtain the note which is used when synced across a number of lines
--- (depends on sample length and playback speed)
-
-function xSample.get_beatsynced_note(bpm,sample)
-  TRACE("xSample.get_beatsynced_note(bpm,sample)",bpm,sample)
-  
-  local bpm = rns.transport.bpm
-  local lpb = rns.transport.lpb
-  return cLib.lines_to_note(sample.beat_sync_lines,bpm,lpb)
-
 end
 
