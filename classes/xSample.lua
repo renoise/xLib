@@ -171,7 +171,8 @@ end
 -- @return renoise.SampleBuffer or nil 
 
 function xSample.get_sample_buffer(sample) 
-  --TRACE("xSample.get_sample_buffer(sample)",sample,sample.name,sample.sample_buffer)
+  TRACE("xSample.get_sample_buffer(sample)",sample)
+  
   if sample.sample_buffer 
     and sample.sample_buffer.has_sample_data
   then
@@ -408,7 +409,17 @@ function xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_s
   line_diff = line_diff + cLib.fraction(end_pos.line)
 
   local frame = xSampleBuffer.get_frame_by_line(sample.sample_buffer,line_diff)
-  frame = xSample.get_transposed_frame(notecol.note_value,frame,sample)
+
+  -- if the sample has beat sync enabled, resolve the note value from the 
+  -- beatsync value instead of the triggering position
+  local note_value = nil 
+  if sample.beat_sync_enabled then 
+    note_value = xSample.get_beatsynced_note(sample)
+  else 
+    note_value = notecol.note_value
+  end  
+  
+  frame = xSample.get_transposed_frame(note_value,frame,sample)
 
   -- increase frame if the sample was triggered using Sxx command 
   if not ignore_sxx and sample.sample_buffer.has_sample_data then 
@@ -432,6 +443,10 @@ end
 function xSample.get_transposed_frame(note_value,frame,sample)
   TRACE("xSample.get_transposed_frame(note_value,frame,sample)",note_value,frame,sample)
   
+  assert(type(note_value)=="number")
+  assert(type(frame)=="number")
+  assert(type(sample)=="Sample")
+  
   local transposed_note = xSample.get_transposed_note(sample,note_value)
   local transp_hz = cConvert.note_to_hz(transposed_note)
   local base_hz = cConvert.note_to_hz(48) -- middle C-4 note
@@ -451,6 +466,8 @@ end
 function xSample.get_transposed_note(sample,played_note)
   TRACE("xSample.get_transposed_note(sample,played_note)",sample,played_note)
   
+  assert(type(sample)=="Sample")
+
   if not played_note then 
     played_note = 0
   end
@@ -460,3 +477,51 @@ function xSample.get_transposed_note(sample,played_note)
   return 48 + played_note - mapping_note + sample_transpose
 end
 
+---------------------------------------------------------------------------------------------------
+-- obtain the number of lines spanned when playing the sample 
+-- NB: the method assumes the current BPM/LPB values
+-- @param sample (Renoise.Sample)
+-- @param note_value (number), using base note if not provided 
+-- @return number 
+
+function xSample.get_lines_spanned(sample,note_value)
+  TRACE("xSample.get_lines_spanned(sample,note_value)",sample,note_value)
+  
+  assert(type(sample)=="Sample")
+  assert(type(note_value)=="number")
+
+  local buffer = xSample.get_sample_buffer(sample)
+  assert(type(buffer)=="SampleBuffer")
+  
+  
+  local num_frames = xSample.get_transposed_frame(note_value,buffer.number_of_frames,sample)
+  local fpl = xSampleBuffer.get_frame_by_line(buffer,1)
+  local num_lines = buffer.number_of_frames/fpl 
+
+  return num_lines
+  
+end
+
+---------------------------------------------------------------------------------------------------
+-- obtain the note value that match the playback tempo of a beat-synced sample -
+-- Eg. a "64 line loop" (computed) playing over 128 lines would be an C-3 (half tempo)
+-- NB: this is an approximate value, things like instr. pitch modulation are not considered 
+-- @param sample (Renoise.Sample)
+-- @return number (pitch, with possible fraction) or nil when not beat-synced
+
+function xSample.get_beatsynced_note(sample)
+  TRACE("xSample.get_beatsynced_note(sample)",sample)
+
+  assert(type(sample)=="Sample")
+  
+  if not sample.beat_sync_enabled then 
+    return 
+  end
+  
+  local note_value = sample.sample_mapping.base_note
+  local num_lines = xSample.get_lines_spanned(sample,note_value)
+  local factor = num_lines/sample.beat_sync_lines
+  
+  return cConvert.hz_to_note(cConvert.note_to_hz(note_value)*factor)
+  
+end
