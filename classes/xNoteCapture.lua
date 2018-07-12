@@ -88,7 +88,7 @@ function xNoteCapture.previous(compare_fn, notepos, end_seq_idx)
       match = xNoteCapture.search_track(tmp_pos, compare_fn,true)
     end
     if match then
-      return match, lines_travelled + notepos.line - 1
+      return match, lines_travelled + notepos.line - match.line
     else
       tmp_pos.sequence = tmp_pos.sequence - 1
       if (tmp_pos.sequence < min_seq_idx) then
