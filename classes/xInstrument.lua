@@ -168,7 +168,11 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- [Static] Detect if there is a slice marker *approximately* at the sample pos
--- @return number or nil, [error message (string)]
+-- @param instr (renoise.Instrument)
+-- @param pos (number)
+-- @param threshold (number)
+-- @return number (marker index) or nil
+-- @return number (marker position) or nil
 
 function xInstrument.get_slice_marker_at_pos(instr,pos,threshold)
   TRACE("xInstrument.get_slice_marker_at_pos(instr,pos,threshold)",instr,pos,threshold)
@@ -178,7 +182,7 @@ function xInstrument.get_slice_marker_at_pos(instr,pos,threshold)
   assert(type(threshold)=="number")
   
   if not xInstrument.is_sliced(instr) then
-    return nil, "Instrument contains no slices"
+    return nil
   end
 
   local sample = instr.samples[1]
@@ -188,7 +192,7 @@ function xInstrument.get_slice_marker_at_pos(instr,pos,threshold)
   for marker_idx = 1,#sample.slice_markers do
     local marker = sample.slice_markers[marker_idx]
     if (marker < max) and (marker > min) then
-      return marker_idx
+      return marker_idx, marker
     end
   end
 
@@ -198,7 +202,36 @@ end
 -- obtain the first slice marker following the provided position
 -- @param instr (renoise.Instrument)
 -- @param pos (number)
--- @return number or nil, [error message (string)]
+-- @return number (marker index) or nil
+-- @return number (marker position) or nil
+
+function xInstrument.get_slice_marker_before_pos(instr,pos)
+  TRACE("xInstrument.get_slice_marker_before_pos(instr,pos)",instr,pos)
+
+  assert(type(instr)=="Instrument")
+  assert(type(pos)=="number")
+  
+  if not xInstrument.is_sliced(instr) then
+    return nil
+  end
+  
+  local sample = instr.samples[1]
+  for marker_idx = #sample.slice_markers,1,-1 do
+    local marker = sample.slice_markers[marker_idx]
+    if (marker < pos) then
+      return marker_idx,marker
+    end
+  end
+
+end
+
+
+---------------------------------------------------------------------------------------------------
+-- obtain the first slice marker following the provided position
+-- @param instr (renoise.Instrument)
+-- @param pos (number)
+-- @return number (marker index) or nil
+-- @return number (marker position) or nil
 
 function xInstrument.get_slice_marker_after_pos(instr,pos)
   TRACE("xInstrument.get_slice_marker_after_pos(instr,pos)",instr,pos)
@@ -207,14 +240,14 @@ function xInstrument.get_slice_marker_after_pos(instr,pos)
   assert(type(pos)=="number")
   
   if not xInstrument.is_sliced(instr) then
-    return nil, "Instrument contains no slices"
+    return nil
   end
   
   local sample = instr.samples[1]
   for marker_idx = 1,#sample.slice_markers do
     local marker = sample.slice_markers[marker_idx]
     if (marker > pos) then
-      return marker_idx
+      return marker_idx,marker
     end
   end
 
