@@ -16,6 +16,7 @@ cLib.require(_xlibroot.."xLine")
 cLib.require(_xlibroot.."xTrack")
 cLib.require(_xlibroot.."xColumns")
 cLib.require(_xlibroot.."xPatternPos")
+cLib.require(_xlibroot.."xPatternSequencer")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -73,8 +74,7 @@ function xCursorPos:resolve()
     return nil, "Line index is out of bounds"
   end
 
-  local patt_idx = rns.sequencer:pattern(self.sequence)
-  local patt = rns.patterns[patt_idx]
+  local patt, patt_idx = xPatternSequencer.get_pattern_at_index(self.sequence)
   if not patt_idx then
     return nil, "Could not resolve pattern"
   end

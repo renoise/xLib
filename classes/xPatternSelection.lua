@@ -22,6 +22,12 @@ Static methods for working with pattern-selections
 
 ]]
 
+--=================================================================================================
+
+cLib.require(_xlibroot.."xPatternSequencer")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xPatternSelection'
 
 -------------------------------------------------------------------------------
@@ -34,8 +40,7 @@ class 'xPatternSelection'
 function xPatternSelection.get_pattern_track(seq_idx,trk_idx)
   TRACE("xPatternSelection.get_pattern_track(seq_idx,trk_idx)",seq_idx,trk_idx)
   
-  local patt_idx = rns.sequencer:pattern(seq_idx)
-  local patt = rns.patterns[patt_idx]
+  local patt,_patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
   local track = rns.tracks[trk_idx]
   if not patt or not track then
     return false, "Could not locate track or pattern"

@@ -18,8 +18,8 @@ See also:
 
 --=================================================================================================
 
---require(_xlibroot.."xLinePattern")
 cLib.require(_xlibroot.."xLinePattern")
+cLib.require(_xlibroot.."xPatternSequencer")
 
 ---------------------------------------------------------------------------------------------------
 
@@ -288,8 +288,7 @@ end
 
 function xLine.resolve_pattern_line(sequence,line,track_idx)
 
-  local patt_idx = rns.sequencer:pattern(sequence)
-  local rns_patt = rns.patterns[patt_idx] 
+  local rns_patt,patt_idx = xPatternSequencer.get_pattern_at_index(sequence)
   local rns_track = rns.tracks[track_idx] 
   assert(rns_patt,"The specied track does not exist")
   local rns_ptrack = rns_patt.tracks[track_idx]

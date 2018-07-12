@@ -699,8 +699,7 @@ end
 function xStreamBuffer:resolve_automation(seq_idx)
   TRACE("xStreamBuffer:resolve_automation(seq_idx)",seq_idx)
  
-  local patt_idx = rns.sequencer:pattern(seq_idx)
-  local patt = rns.patterns[patt_idx]
+  local patt,_patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
   if not patt then
     LOG("*** xStreamBuffer:resolve_automation - Could not find pattern")
     return

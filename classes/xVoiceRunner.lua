@@ -21,6 +21,7 @@ See also:
 
 cLib.require (_xlibroot.."cTable")
 cLib.require (_xlibroot.."xPatternSelection")
+cLib.require (_xlibroot.."xPatternSequencer")
 cLib.require (_xlibroot.."xNoteColumn")
 
 ---------------------------------------------------------------------------------------------------
@@ -214,8 +215,7 @@ function xVoiceRunner:collect(ptrack_or_phrase,collect_mode,selection,trk_idx,se
   local num_lines,visible_note_columns,vol_visible,pan_visible,dly_visible
   if collecting_from_pattern then
     local track = rns.tracks[trk_idx]
-    local patt_idx = rns.sequencer:pattern(seq_idx)
-    local patt = rns.patterns[patt_idx]
+    local patt,_patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
     num_lines = patt.number_of_lines
     visible_note_columns = track.visible_note_columns
     vol_visible = track.volume_column_visible
@@ -596,9 +596,7 @@ function xVoiceRunner:collect_below_cursor()
   local ptrack_or_phrase = rns.selected_pattern_track
   local col_idx = rns.selected_note_column_index
   local line_idx = rns.selected_line_index
-  local seq_idx = rns.selected_sequence_index
-  local patt_idx = rns.sequencer:pattern(seq_idx)
-  local patt = rns.patterns[patt_idx]
+  local patt,_patt_idx = xPatternSequencer.get_pattern_at_index(rns.selected_sequence_index)
 
   self:reset()
   self:collect(ptrack_or_phrase,xVoiceRunner.COLLECT_MODE.CURSOR)

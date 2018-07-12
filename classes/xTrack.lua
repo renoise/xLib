@@ -12,6 +12,10 @@ Static Methods for working with renoise.Track objects
 
 --=================================================================================================
 
+cLib.require(_xlibroot.."xPatternSequencer")
+
+---------------------------------------------------------------------------------------------------
+
 class 'xTrack'
 
 ---------------------------------------------------------------------------------------------------
@@ -320,11 +324,10 @@ end
 function xTrack:get_pattern_track(seq_idx,trk_idx)
   TRACE("xTrack:get_pattern_track(seq_idx,trk_idx)",seq_idx,trk_idx)
 
-  local patt_idx = rns.sequencer:pattern(seq_idx)
-  if not patt_idx then
+  local patt = xPatternSequencer.get_pattern_at_index(seq_idx)
+  if not patt then
     return false,"Could not locate pattern"
   end
-  local patt = rns.patterns[patt_idx]
   local ptrack = patt:track(trk_idx)
   if not ptrack then
     return nil,"Could not locate pattern-track"
