@@ -11,16 +11,24 @@ Methods for capturing notes in pattern editor
 ]]
 
 
+
+cLib.require(_xlibroot.."xPatternSequencer")
+
 class 'xNoteCapture'
+
 
 -------------------------------------------------------------------------------
 -- [Static] Capture the note at the current position, or previous
 -- if no previous is found, find the next one
+-- @param compare_fn (function)
 -- @param pos (xCursorPos)
 -- @return xCursorPos or nil if not matched
+-- @return number (lines travelled) or nil
 
 function xNoteCapture.nearest(compare_fn,notepos)
   TRACE("xNoteCapture.nearest(notepos,compare_fn)", notepos, compare_fn)
+  
+  assert(type(compare_fn)=="function")
   
   if not notepos then
     notepos = xCursorPos()
@@ -28,11 +36,12 @@ function xNoteCapture.nearest(compare_fn,notepos)
   
   local column, err = notepos:get_column()
   if column and (column.instrument_value < 255) then
-    return notepos
+    -- FIXME should compare! 
+    return notepos,0
   else
-    local prev_pos = xNoteCapture.previous(compare_fn,notepos)
+    local prev_pos,lines_travelled = xNoteCapture.previous(compare_fn,notepos)
     if prev_pos then
-      return prev_pos
+      return prev_pos,lines_travelled
     else
       return xNoteCapture.next(compare_fn,notepos)
     end
@@ -44,33 +53,41 @@ end
 -- @param compare_fn (function)
 -- @param notepos (xCursorPos)
 -- @param end_seq_idx (int)[optional], stop searching at this sequence index
--- @return xCursorPos or nil if not matched
+-- @return xCursorPos or nil 
+-- @return number (lines travelled) or nil 
+
 function xNoteCapture.previous(compare_fn, notepos, end_seq_idx)
   TRACE("xNoteCapture.previous(compare_fn,notepos,end_seq_idx)", compare_fn, notepos, end_seq_idx)
   
-  notepos = xCursorPos(notepos)
+  assert(type(compare_fn)=="function")
+
+  if not notepos then 
+    notepos = xCursorPos()
+  end
+    
+  local tmp_pos = xCursorPos(notepos)
   
   local matched = false
+  local lines_travelled = 0
   local min_seq_idx = end_seq_idx or 1
-  notepos.line = notepos.line - 1
+  tmp_pos.line = tmp_pos.line - 1
   
   while not matched do
     local match = nil
-    if (notepos.line > 0) then
-      match = xNoteCapture.search_track(notepos, compare_fn,true)
+    if (tmp_pos.line > 0) then
+      match = xNoteCapture.search_track(tmp_pos, compare_fn,true)
     end
     if match then
-      return match
+      return match, lines_travelled + notepos.line - 1
     else
-      notepos.sequence = notepos.sequence - 1
-      if (notepos.sequence < min_seq_idx) then
+      tmp_pos.sequence = tmp_pos.sequence - 1
+      if (tmp_pos.sequence < min_seq_idx) then
         return 
-      end
-      
-      local patt_idx = rns.sequencer:pattern(notepos.sequence)
-      local patt = rns.patterns[patt_idx]
-      if (patt) then
-        notepos.line = patt.number_of_lines
+      end      
+      local num_lines = xPatternSequencer.get_number_of_lines(tmp_pos.sequence)      
+      if num_lines then
+        tmp_pos.line = num_lines
+        lines_travelled = lines_travelled + num_lines        
       else
         return 
       end
@@ -83,29 +100,38 @@ end
 -- @param compare_fn (function)
 -- @param notepos (xCursorPos)
 -- @param end_seq_idx (int)[optional], stop searching at this sequence index
--- @return xCursorPos or nil if not matched
+-- @return xCursorPos or nil 
+-- @return number (lines travelled) or nil
+
 function xNoteCapture.next(compare_fn, notepos, end_seq_idx)
   TRACE("xNoteCapture.next(compare_fn,notepos,end_seq_idx)", compare_fn, notepos, end_seq_idx)
   
-  notepos = xCursorPos(notepos)
+  assert(type(compare_fn)=="function")
+
+  if not notepos then 
+    notepos = xCursorPos()
+  end
+      
+  local tmp_pos = xCursorPos(notepos)
   
   local matched = false
+  local lines_travelled = 0
   local max_seq_idx = end_seq_idx or #rns.sequencer.pattern_sequence
-  notepos.line = notepos.line + 1
+  tmp_pos.line = tmp_pos.line + 1
   
   while not matched do
-    local match = xNoteCapture.search_track(notepos, compare_fn)
+    local match = xNoteCapture.search_track(tmp_pos, compare_fn)
     if match then
-      return match
+      return match, lines_travelled + (match.line - notepos.line)
     else
-      notepos.sequence = notepos.sequence + 1
-      if (notepos.sequence > max_seq_idx) then
+      tmp_pos.sequence = tmp_pos.sequence + 1
+      if (tmp_pos.sequence > max_seq_idx) then
         return 
-      end
-      local patt_idx = rns.sequencer:pattern(notepos.sequence)
-      local patt = rns.patterns[patt_idx]
-      if (patt) then
-        notepos.line = 1
+      end      
+      local num_lines,patt_idx,patt = xPatternSequencer.get_number_of_lines(tmp_pos.sequence)
+      if patt then
+        tmp_pos.line = 1
+        lines_travelled = lines_travelled + num_lines       
       else
         return 
       end
@@ -123,8 +149,9 @@ end
 function xNoteCapture.search_track(notepos, compare_fn, reverse)
   TRACE("xNoteCapture.search_track(notepos,compare_fn)", notepos, compare_fn)
   
-  local patt_idx = rns.sequencer:pattern(notepos.sequence)
-  local patt = rns.patterns[patt_idx]
+  assert(type(compare_fn)=="function")
+  
+  local patt = xPatternSequencer.get_pattern_at_index(notepos.sequence)
   local patt_trk = patt.tracks[notepos.track]
   
   if (patt_trk.is_empty) then
