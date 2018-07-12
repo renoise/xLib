@@ -237,7 +237,8 @@ end
 -- [Static] Retrieve the pattern index 
 -- OPTIMIZE how to implement a caching mechanism? 
 -- @param seq_idx, sequence index 
--- @return int or nil 
+-- @return int (number of lines) or nil 
+-- @return int (pattern index) or nil 
 -- @return renoise.Pattern or nil
 
 function xPatternSequencer.get_number_of_lines(seq_idx)
@@ -247,7 +248,7 @@ function xPatternSequencer.get_number_of_lines(seq_idx)
 
   local patt,patt_idx = xPatternSequencer.get_pattern_at_index(seq_idx)
   if patt then
-    return patt.number_of_lines,patt_idx
+    return patt.number_of_lines,patt_idx,patt
   end
 
 end
