@@ -536,6 +536,7 @@ function xSample.get_beatsynced_note(sample)
   local base_note = 48 
   local hz = cConvert.note_to_hz(base_note)
   local factor = xSample.get_beatsynced_factor(sample)
-  return cConvert.hz_to_note(hz*factor)
+  local note,cents = cConvert.hz_to_note(hz*factor)
+  return note+(cents/100)
   
 end
