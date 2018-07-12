@@ -21,12 +21,15 @@ class 'xNoteCapture'
 -- [Static] Capture the note at the current position, or previous
 -- if no previous is found, find the next one
 -- @param compare_fn (function)
--- @param pos (xCursorPos)
+-- @param notepos (xCursorPos)
+-- @param args (table) optional arguments
+--  .ignore_previous (boolean) don't look back 
+--  .ignore_next (boolean) don't look forward
 -- @return xCursorPos or nil if not matched
 -- @return number (lines travelled) or nil
 
-function xNoteCapture.nearest(compare_fn,notepos)
-  TRACE("xNoteCapture.nearest(notepos,compare_fn)", notepos, compare_fn)
+function xNoteCapture.nearest(compare_fn,notepos,args)
+  TRACE("xNoteCapture.nearest(notepos,compare_fn,args)",notepos,compare_fn,args)
   
   assert(type(compare_fn)=="function")
   
@@ -34,15 +37,22 @@ function xNoteCapture.nearest(compare_fn,notepos)
     notepos = xCursorPos()
   end
   
+  if not args then 
+    args = {}
+  end
+  
   local column, err = notepos:get_column()
   if column and (column.instrument_value < 255) then
     -- FIXME should compare! 
     return notepos,0
   else
-    local prev_pos,lines_travelled = xNoteCapture.previous(compare_fn,notepos)
+    local prev_pos,lines_travelled = nil,nil
+    if not args.ignore_previous then 
+      prev_pos,lines_travelled = xNoteCapture.previous(compare_fn,notepos)
+    end
     if prev_pos then
       return prev_pos,lines_travelled
-    else
+    elseif not args.ignore_next then 
       return xNoteCapture.next(compare_fn,notepos)
     end
   end
