@@ -261,6 +261,11 @@ end
 function xPatternSequencer.get_pattern_at_index(seq_idx)
   TRACE("xPatternSequencer.get_pattern_at_index(seq_idx)",seq_idx)
 
+  -- guard against out-of-bounds 
+  if (seq_idx < 1 or seq_idx > #rns.sequencer.pattern_sequence) then 
+    return
+  end
+  
   local patt_idx = rns.sequencer:pattern(seq_idx)
   if patt_idx then 
     return rns:pattern(patt_idx),patt_idx
