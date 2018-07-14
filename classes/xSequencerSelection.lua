@@ -248,8 +248,14 @@ function xSequencerSelection.shift_forward(seq_range)
   local start_pos = {sequence = seq_range.start_sequence, line = seq_range.start_line}
   local end_pos =   {sequence = seq_range.end_sequence,   line = seq_range.end_line}
 
-  xSongPos.increase_by_lines(range_num_lines,start_pos,BOUNDS_MODE,LOOP_MODE,BLOCK_MODE)
-  xSongPos.increase_by_lines(range_num_lines,end_pos,BOUNDS_MODE,LOOP_MODE,BLOCK_MODE)
+  local pos_args = {
+    bounds_mode = BOUNDS_MODE,
+    loop_boundary = LOOP_MODE,
+    block_boundary = BLOCK_MODE
+  }
+  
+  xSongPos.increase_by_lines(range_num_lines,start_pos,pos_args)
+  xSongPos.increase_by_lines(range_num_lines,end_pos,pos_args)
 
   return {
     start_sequence = start_pos.sequence,
@@ -273,8 +279,14 @@ function xSequencerSelection.shift_backward(seq_range)
   local start_pos = {sequence = seq_range.start_sequence,line = seq_range.start_line}
   local end_pos =   {sequence = seq_range.end_sequence,line = seq_range.end_line}
 
-  xSongPos.decrease_by_lines(range_num_lines,start_pos,BOUNDS_MODE,LOOP_MODE,BLOCK_MODE)
-  xSongPos.decrease_by_lines(range_num_lines,end_pos,BOUNDS_MODE,LOOP_MODE,BLOCK_MODE)
+  local pos_args = {
+    bounds_mode = BOUNDS_MODE,
+    loop_boundary = LOOP_MODE,
+    block_boundary = BLOCK_MODE
+  }
+  
+  xSongPos.decrease_by_lines(range_num_lines,start_pos,pos_args)
+  xSongPos.decrease_by_lines(range_num_lines,end_pos,pos_args)
 
   return {
     start_sequence = start_pos.sequence,
