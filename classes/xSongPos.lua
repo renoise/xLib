@@ -346,7 +346,7 @@ function xSongPos.decrease_by_lines(num_lines,pos,args)
         if (line_idx < 1) then
           -- zero is not a valid line index, normalize!!
           local new_pos = {sequence=seq_idx,line=line_idx}
-          xSongPos.decrease_by_lines(1,new_pos,args.bounds_mode,args.block_boundary)
+          xSongPos.decrease_by_lines(1,new_pos,args)
           seq_idx = new_pos.sequence
           line_idx = new_pos.line
         end
