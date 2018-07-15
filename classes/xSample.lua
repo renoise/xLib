@@ -223,9 +223,6 @@ function xSample.convert_sample(instr_idx,sample_idx,args,callback)
     end
   end 
   
-  print("num_channels",num_channels)
-  print("channel_idx",channel_idx)
-
   
   -- change sample 
 
@@ -268,7 +265,7 @@ function xSample.convert_sample(instr_idx,sample_idx,args,callback)
       do_process
     },
     on_complete = function(_bop_)
-      print(">>> on_complete",_bop_)
+      --print(">>> on_complete",_bop_)
       callback(_bop_.sample)
     end,
     on_error = function(err)
@@ -419,7 +416,7 @@ function xSample.get_buffer_frame_by_notepos(sample,trigger_pos,end_pos,ignore_s
     note_value = xSample.get_transposed_note(sample,notecol.note_value)  
   end  
   
-  frame = xSample.get_transposed_frame(note_value,frame,sample)
+  frame = xSample.get_transposed_frame(note_value,frame)
 
   -- increase frame if the sample was triggered using Sxx command 
   if not ignore_sxx and sample.sample_buffer.has_sample_data then 
@@ -440,12 +437,11 @@ end
 ---------------------------------------------------------------------------------------------------
 -- transpose the number of frames 
 
-function xSample.get_transposed_frame(note_value,frame,sample)
-  TRACE("xSample.get_transposed_frame(note_value,frame,sample)",note_value,frame,sample)
+function xSample.get_transposed_frame(note_value,frame)
+  TRACE("xSample.get_transposed_frame(note_value,frame)",note_value,frame)
   
   assert(type(note_value)=="number")
   assert(type(frame)=="number")
-  assert(type(sample)=="Sample")
   
   local transp_hz = cConvert.note_to_hz(note_value)
   local base_hz = cConvert.note_to_hz(48) -- middle C-4 note
@@ -481,23 +477,23 @@ end
 -- NB: the method assumes the current BPM/LPB values
 -- @param sample (Renoise.Sample)
 -- @param note_value (number)
+-- @param [frames] (number), force to specific #frames (otherwise, use buffer length)
 -- @return number 
 
-function xSample.get_lines_spanned(sample,note_value)
+function xSample.get_lines_spanned(sample,note_value,frames)
   TRACE("xSample.get_lines_spanned(sample,note_value)",sample,note_value)
   
   assert(type(sample)=="Sample")
-  assert(sample.beat_sync_enabled) -- for now 
-  
-  assert(type(note_value)=="number")
 
   local buffer = xSample.get_sample_buffer(sample)
-  assert(type(buffer)=="SampleBuffer")
+  if not frames then 
+    assert(type(buffer)=="SampleBuffer")
+    frames = buffer.number_of_frames
+  end
   
-  local trans_note = xSample.get_transposed_note(sample,note_value)  
-  local num_frames = xSample.get_transposed_frame(trans_note,buffer.number_of_frames,sample)
+  local trans_frames = xSample.get_transposed_frame(note_value,frames)
   local fpl = xSampleBuffer.get_frame_by_line(buffer,1)
-  local num_lines = buffer.number_of_frames/fpl 
+  local num_lines = trans_frames/fpl 
 
   return num_lines
   
@@ -533,7 +529,7 @@ function xSample.get_beatsynced_note(sample)
     return 
   end
   
-  local base_note = 48 
+  local base_note = (48 - sample.sample_mapping.base_note) + 48
   local hz = cConvert.note_to_hz(base_note)
   local factor = xSample.get_beatsynced_factor(sample)
   local note,cents = cConvert.hz_to_note(hz*factor)
