@@ -167,6 +167,40 @@ function xInstrument.set_phrase_playback_enabled(instr,bool)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- obtain the length (in frames) of a given slice 
+-- NB: allows special index of "0" - the interval leading up to the first "real" slice 
+
+function xInstrument.get_num_frames_in_slice(instr,marker_idx)
+  
+  assert(type(instr)=="Instrument")
+  assert(type(marker_idx)=="number")
+  
+  if not xInstrument.is_sliced(instr) then
+    return nil,"Instrument is not sliced "
+  end
+
+  local sample = instr.samples[1] -- root sample
+
+  if (marker_idx == 0) then 
+    return sample.slice_markers[1] - 1
+  end 
+  
+  if not sample.slice_markers[marker_idx] then 
+    return nil,"Can't retrieve slice marker - out of range"
+  end
+  
+  local frame_start = sample.slice_markers[marker_idx]
+  local frame_end = sample.slice_markers[marker_idx+1]
+  if not frame_end then 
+    local buffer = xSample.get_sample_buffer(sample)
+    frame_end = buffer.number_of_frames + 1
+  end
+  
+  return frame_end - frame_start
+  
+end
+
+---------------------------------------------------------------------------------------------------
 -- [Static] Detect if there is a slice marker *approximately* at the sample pos
 -- @param instr (renoise.Instrument)
 -- @param pos (number)
