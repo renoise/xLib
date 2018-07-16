@@ -188,3 +188,22 @@ function xPatternSelection.spans_entire_line(patt_sel,number_of_columns)
 
 end
 
+---------------------------------------------------------------------------------------------------
+-- check if a cursor is situated somewhere within a pattern-selection 
+-- @return boolean
+
+function xPatternSelection.within_bounds(patt_sel,cursor)
+  
+  if (cursor.line < patt_sel.start_line) 
+    or (cursor.line > patt_sel.end_line) 
+    or (cursor.track < patt_sel.start_track) 
+    or (cursor.track > patt_sel.end_track) 
+    or (cursor.column < patt_sel.start_column) 
+    or (cursor.column > patt_sel.end_column) 
+  then 
+    return false
+  end
+  
+  return true
+
+end 
