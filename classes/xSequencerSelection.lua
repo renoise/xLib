@@ -133,14 +133,18 @@ function xSequencerSelection.within_range(seq_range,songpos)
   TRACE("xSequencerSelection.within_range(seq_range,songpos)",seq_range,songpos)
 
   assert(type(seq_range)=="table")
-  
-  if (seq_range.start_sequence < songpos.sequence) 
+
+  if (seq_range.start_sequence > songpos.sequence) 
+    or (seq_range.end_sequence < songpos.sequence) 
+  then
+    return false
+  elseif (seq_range.start_sequence < songpos.sequence) 
     and (seq_range.end_sequence > songpos.sequence) 
   then 
-    return false 
+    return true 
   else
     if (seq_range.start_sequence == songpos.sequence) 
-      and (seq_range.start_line > songpos.line)  
+    and (seq_range.start_line > songpos.line)  
     then
       return false 
     end
