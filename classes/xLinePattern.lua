@@ -490,7 +490,7 @@ function xLinePattern.set_effect_column_command(track,line,fx_number,fx_amount,c
   local notecol_idx = -1 -- only match effect-columns
   local rslt = xLinePattern.get_effect_column_command(track,line,fx_number,notecol_idx,visible_only)
   if not table.is_empty(rslt) 
-    and rslt[1].value == fx_amount
+    and rslt[1].amount_value == fx_amount
   then 
     -- command already exists
     return nil, "Effect Command already exists"
