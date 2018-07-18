@@ -247,7 +247,6 @@ function xKeyZone.create_multisample_layout(layout,instr)
         local mapping = xKeyZone.find_mapping(memoized,note_rng,vel_rng)
         sample = mapping and mapping.sample
       end
-      print("rslt",rslt)
       table.insert(rslt,xSampleMapping{
         layer = layout.layer,
         base_note = base_notes[k][1],

@@ -490,8 +490,6 @@ function xInstrument.clone_sample(instr,sample_idx,args)
   -- detect if instrument is in drumkit mode
   -- (usually, a newly inserted sample occupies the entire keyzone...)
   local drumkit_mode = not xSampleMapping.has_full_note_range(new_sample.sample_mapping)
-  print("clone_sample - drumkit_mode",drumkit_mode)
-  rprint(new_sample.sample_mapping.note_range)
 
   -- initialize some properties before copying...
   --new_sample.loop_start = 1
