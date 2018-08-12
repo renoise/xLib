@@ -127,17 +127,8 @@ end
 function xStreamPos:_increase_by(lines)
   TRACE("xStreamPos:_increase_by(lines)",lines)
   TRACE(">>> self.pos",self.pos)
-  local xinc = xSongPos.increase_by_lines(lines,self.pos)
-  self.xinc = self.xinc + xinc
-end 
-
----------------------------------------------------------------------------------------------------
-
-function xStreamPos:_decrease_by(lines)
-  TRACE("xStreamPos:_decrease_by(lines)",lines)
-  TRACE(">>> self.pos",self.pos)
-  local xinc = xSongPos.decrease_by_lines(lines,self.pos)
-  self.xinc = self.xinc + xinc
+  self.pos = xSongPos.increase_by_lines(lines,self.pos)
+  self.xinc = self.xinc + lines
 end 
 
 ---------------------------------------------------------------------------------------------------
