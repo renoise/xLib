@@ -19,6 +19,7 @@ See also:
 --=================================================================================================
 
 cLib.require(_xlibroot.."xLinePattern")
+cLib.require(_xlibroot.."xLineAutomation")
 cLib.require(_xlibroot.."xPatternSequencer")
 
 ---------------------------------------------------------------------------------------------------
