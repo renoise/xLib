@@ -211,8 +211,8 @@ function xStreamBuffer:update_read_buffer()
       self.pattern_buffer[xinc] = xLine.do_read(
         pos.sequence,pos.line,self.include_hidden,self.track_index)
         --print("update_read_buffer - read from pattern - xinc,pos",xinc,pos)
-      local travelled = xSongPos.increase_by_lines(1,pos)
-      xinc = xinc + travelled
+      pos = xSongPos.increase_by_lines(1,pos)
+      xinc = xinc + 1
     end
     self:wipe_futures()
   end
@@ -452,8 +452,8 @@ function xStreamBuffer:_create_content(num_lines,xinc)
       self:set_buffer(xinc,xline)
     end
 
-    local travelled = xSongPos.increase_by_lines(1,pos)
-    xinc = xinc + travelled
+    pos = xSongPos.increase_by_lines(1,pos)
+    xinc = xinc + 1
 
   end
 
@@ -548,7 +548,7 @@ function xStreamBuffer:immediate_output()
   local live_mode = rns.transport.playing
   local xinc = self:_get_xinc() 
   local pos = xSongPos.create(self.xpos.pos)
-  xSongPos.increase_by_lines(1,pos)
+  pos = xSongPos.increase_by_lines(1,pos)
 
   --print("*** immediate output")
   self:write_output(pos,xinc,nil,live_mode)
@@ -602,7 +602,7 @@ function xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)
 
     if (tmp_pos.line > patt_num_lines) then 
       --print(">>> write_output exceeded pattern - normalize the songpos and redial ")
-      xSongPos.normalize(tmp_pos)
+      tmp_pos = xSongPos.normalize(tmp_pos)
       self:write_output(tmp_pos,xinc+i,num_lines-i)
       return
     end 
