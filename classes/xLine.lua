@@ -98,7 +98,6 @@ end
 -- @param phrase (renoise.InstrumentPhrase)
 -- @param ptrack_auto (renoise.PatternTrackAutomation)
 -- @param patt_num_lines (int), length of the playpos pattern 
--- @param tokens (table<string>)
 -- @param include_hidden (bool)
 -- @param expand_columns (bool)
 -- @param clear_undefined (bool)
@@ -110,11 +109,12 @@ function xLine:do_write(
   phrase,
   ptrack_auto,
   patt_num_lines,
-  tokens,
   include_hidden,
   expand_columns,
   clear_undefined)
 
+  --error("xLine:do_write - expand_columns",expand_columns)
+  
   -- pattern/phrase
   if self.pattern_line then
     self.pattern_line.note_columns = self.note_columns
@@ -124,7 +124,6 @@ function xLine:do_write(
       line,
       track_idx,
       phrase,
-      tokens,
       include_hidden,
       expand_columns,
       clear_undefined)

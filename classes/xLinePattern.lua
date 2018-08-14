@@ -93,18 +93,62 @@ function xLinePattern:apply_descriptor(note_columns,effect_columns)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Update subcolumn visibility (related: xNoteColumn.subcolumn_is_empty)
+-- @param rns_track_or_phrase (renoise.Track or renoise.InstrumentPhrase) 
+-- @param token (string), one of xNoteColumn.subcolumn_tokens
+-- @param val (boolean)
+
+function xLinePattern.set_subcolumn_visibility(rns_track_or_phrase,token,val)
+  print("xLinePattern.set_subcolumn_visibility(rns_track_or_phrase,token,val)",rns_track_or_phrase,token,val)
+  
+  local choices = {
+    ["volume_value"] = function()
+      rns_track_or_phrase.volume_column_visible = val
+    end, 
+    ["panning_value"] = function()
+      rns_track_or_phrase.panning_column_visible = val
+    end,
+    ["delay_value"] = function()
+      rns_track_or_phrase.delay_column_visible = val
+    end,
+    ["effect_number_value"] = function()
+      rns_track_or_phrase.sample_effects_column_visible = val
+    end,
+    ["effect_amount_value"] = function()
+      rns_track_or_phrase.sample_effects_column_visible = val
+    end,
+  }
+  if choices[token] then 
+    choices[token]()    
+    return
+  end
+
+  error("Unexpected token - use `xNoteColumn.subcolumn_tokens`")
+  
+end
+
+
+---------------------------------------------------------------------------------------------------
 -- [Class] Combined method for writing to pattern or phrase
 -- @param sequence (int)
 -- @param line (int)
 -- @param track_idx (int), when writing to pattern
 -- @param phrase (renoise.InstrumentPhrase), when writing to phrase
--- @param tokens (table<string>) process these tokens ("note_value", etc)
 -- @param include_hidden (bool) apply to hidden columns as well
 -- @param expand_columns (bool) reveal columns as they are written to
 -- @param clear_undefined (bool) clear existing data when ours is nil
 
-function xLinePattern:do_write(sequence,line,track_idx,phrase,tokens,include_hidden,expand_columns,clear_undefined)
+function xLinePattern:do_write(
+  sequence,
+  line,
+  track_idx,
+  phrase,
+  include_hidden,
+  expand_columns,
+  clear_undefined)
 
+  print(">>> xLinePattern:do_write - expand_columns",expand_columns)
+  
   local rns_line,_patt_idx,_rns_patt,rns_track,_rns_ptrack
   local rns_track_or_phrase
 
@@ -118,19 +162,6 @@ function xLinePattern:do_write(sequence,line,track_idx,phrase,tokens,include_hid
   end
 
   local is_seq_track = (rns_track.type == renoise.Track.TRACK_TYPE_SEQUENCER)
-
-  local visible_note_cols = rns_track_or_phrase.visible_note_columns
-  local visible_fx_cols = rns_track_or_phrase.visible_effect_columns
-
-  -- figure out which sub-columns to display (VOL/PAN/DLY)
-  if is_seq_track and expand_columns and not table.is_empty(self.note_columns) then
-    rns_track_or_phrase.volume_column_visible = rns_track_or_phrase.volume_column_visible or 
-      (type(table.find(tokens,"volume_value") or table.find(tokens,"volume_string")) ~= 'nil')
-    rns_track_or_phrase.panning_column_visible = rns_track_or_phrase.panning_column_visible or
-      (type(table.find(tokens,"panning_value") or table.find(tokens,"panning_string")) ~= 'nil')
-    rns_track_or_phrase.delay_column_visible = rns_track_or_phrase.delay_column_visible or
-      (type(table.find(tokens,"delay_value") or table.find(tokens,"delay_string")) ~= 'nil')
-  end
   
   if is_seq_track then
     self:process_columns(rns_line.note_columns,
@@ -138,8 +169,6 @@ function xLinePattern:do_write(sequence,line,track_idx,phrase,tokens,include_hid
       self.note_columns,
       include_hidden,
       expand_columns,
-      visible_note_cols,
-      xNoteColumn.output_tokens,
       clear_undefined,
       xLinePattern.COLUMN_TYPES.NOTE_COLUMN)
   else
@@ -153,8 +182,6 @@ function xLinePattern:do_write(sequence,line,track_idx,phrase,tokens,include_hid
     self.effect_columns,
     include_hidden,
     expand_columns,
-    visible_fx_cols,
-    xEffectColumn.output_tokens,
     clear_undefined,
     xLinePattern.COLUMN_TYPES.EFFECT_COLUMN)
 
@@ -167,8 +194,6 @@ end
 -- @param xline_columns (table<xNoteColumn or xEffectColumn>)
 -- @param include_hidden (bool) apply to hidden columns as well
 -- @param expand_columns (bool) reveal columns as they are written to
--- @param visible_cols (int) number of visible note/effect columns
--- @param tokens (table<string>) process these tokens ("note_value", etc)
 -- @param clear_undefined (bool) clear existing data when ours is nil
 -- @param col_type (xLinePattern.COLUMN_TYPES)
 
@@ -178,47 +203,51 @@ function xLinePattern:process_columns(
   xline_columns,
   include_hidden,
   expand_columns,
-  visible_cols,
-  tokens,
   clear_undefined,
   col_type)
 
+  local visible_cols = 1
+  
+  -- callback function - reveals non-empty subcolumns 
+  -- as values are written to them 
+  local subcolumn_callback = function(note_col,token)
+    if not xNoteColumn.subcolumn_is_empty(note_col,token) then 
+      xLinePattern.set_subcolumn_visibility(rns_track_or_phrase,token,true)
+    end
+  end
+  
 	for k,rns_col in ipairs(rns_columns) do
     
-    if not expand_columns then
-      if not include_hidden and (k > visible_cols) then
-        break
-      end
+    if not expand_columns and not include_hidden and (k > visible_cols) then
+      break
+    elseif (k > #rns_columns) then 
+      break
     end
 
     local col = xline_columns[k]
     
     if col then
 
-      if expand_columns 
-        and ((type(col)=="xNoteColumn") or (type(col)=="xEffectColumn"))
-        or ((type(col) == "table") and not table.is_empty(col))
-      then
-        if (k > visible_cols) then
-          visible_cols = k
-        end
-      end
-
-      if not include_hidden and (k > visible_cols) then
-        break
+      if expand_columns then
+        visible_cols = k
       end
 
       -- a table can be the result of a redefined column
+      local tokens = {}
+      local callback = nil
       if (type(col) == "table") then
         if (col_type == xLinePattern.COLUMN_TYPES.NOTE_COLUMN) then
           col = xNoteColumn(col)
+          tokens = xNoteColumn.output_tokens
+          callback = expand_columns and subcolumn_callback
         elseif (col_type == xLinePattern.COLUMN_TYPES.EFFECT_COLUMN) then
           col = xEffectColumn(col)
+          tokens = xEffectColumn.output_tokens
         end
       end
 
       col:do_write(
-        rns_col,tokens,clear_undefined)
+        rns_col,tokens,clear_undefined,callback)
     else
       if clear_undefined then
         rns_col:clear()
