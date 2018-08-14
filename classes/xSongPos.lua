@@ -816,9 +816,9 @@ function xSongPos.enforce_block_boundary(pos,line_delta,boundary)
   assert(type(line_delta) == "number")
   
   if (line_delta == 0) then 
-    return 0 -- nothing to do 
+    return pos.line 
   end
-
+    
   if not boundary then boundary = xSongPos.DEFAULT_BLOCK_MODE end
 
   if rns.transport.loop_block_enabled then
@@ -856,7 +856,6 @@ function xSongPos.enforce_block_boundary(pos,line_delta,boundary)
       end
     end
   end
-
   return pos.line + line_delta
 
 end
