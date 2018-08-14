@@ -396,8 +396,7 @@ end
 function xStreamBuffer:_get_immediate_xinc()
   TRACE("xStreamBuffer:_get_immediate_xinc()")
 
-  local live_mode = rns.transport.playing and 1 or 0
-  return self.xpos.xinc + live_mode
+  return self.xpos.xinc + rns.transport.playing and 1 or 0
 
 end
 
@@ -566,7 +565,6 @@ function xStreamBuffer:immediate_output(get_input)
 
   self:wipe_futures()
 
-  local live_mode = rns.transport.playing
   local xinc = self:_get_immediate_xinc() 
   local pos = xSongPos.increase_by_lines(1,self.xpos.pos)
 
@@ -578,7 +576,7 @@ function xStreamBuffer:immediate_output(get_input)
   end 
 
   --print("*** xStreamBuffer:immediate output")
-  self:write_output(pos,xinc,1,live_mode)
+  self:write_output(pos,xinc,1)
 
 end
 
@@ -588,10 +586,9 @@ end
 -- @param pos (SongPos)
 -- @param xinc (int), buffer position 
 -- @param [num_lines] (int), use writeahead if not defined
--- @param live_mode (bool), skip line at playpos when true
 
-function xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)
-  TRACE("xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)",pos,xinc,num_lines,live_mode)
+function xStreamBuffer:write_output(pos,xinc,num_lines)
+  TRACE("xStreamBuffer:write_output(pos,xinc,num_lines)",pos,xinc,num_lines)
 
   local start_time = os.clock()
 
@@ -639,7 +636,8 @@ function xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)
   -- write the newly generated content 
   -- (skip lines that were already written)
   local start_idx = math.min(num_lines-1,num_lines-(self.highest_xinc-tmp_highest_xinc))
-  --print("xStreamBuffer:write_output - start_idx",start_idx,"num_lines",num_lines,"tmp_highest_xinc",tmp_highest_xinc,"self.highest_xinc",self.highest_xinc)
+  
+  --print("xStreamBuffer:write_output - start_idx",start_idx,"pos",pos,"tmp_pos",tmp_pos,"num_lines",num_lines,"tmp_highest_xinc",tmp_highest_xinc,"self.highest_xinc",self.highest_xinc)
   -- start index can be a negative number when streaming just started 
   -- (due to self.highest_xinc being assigned a value of -1)
   start_idx = math.max(0,start_idx)
@@ -650,7 +648,7 @@ function xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)
     tmp_pos.line = pos.line+i
 
     if (tmp_pos.line > patt_num_lines) then 
-      TRACE("xStreamBuffer:write_output exceeded pattern - normalize the songpos and redial ")
+      --TRACE(">>> xStreamBuffer:write_output exceeded pattern - normalize the songpos and redial ")
       tmp_pos = xSongPos.normalize(tmp_pos)
       self:write_output(tmp_pos,xinc+i,num_lines-i)
       return
@@ -661,8 +659,10 @@ function xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)
       -- TODO don't perform this check when playback is beyond the block-loop
       -- (we have manully jumped past the loop point, using e.g. page-down)
       tmp_pos.line = xSongPos.enforce_block_boundary(pos,i)
+      --TRACE(">>> xStreamBuffer:write_output - tmp_pos.line",tmp_pos.line,"cached_line",cached_line)
+      
       if (cached_line ~= tmp_pos.line) then 
-        --print("xStreamBuffer:write_output - exceeded a block-loop",cached_line,tmp_pos.line)
+        --print(">>> xStreamBuffer:write_output - exceeded a block-loop",cached_line,tmp_pos.line)
         self:write_output(tmp_pos,xinc+i,num_lines-i)
         return
       end
@@ -678,10 +678,6 @@ function xStreamBuffer:write_output(pos,xinc,num_lines,live_mode)
     end
 
   end
-
-  if not live_mode then
-    LOG(">>> xStreamBuffer: finished in", os.clock()-start_time,"s")
-  end  
 
 end
 
@@ -732,7 +728,6 @@ function xStreamBuffer:write_line(xline,pos,phrase,patt_num_lines)
       phrase,
       ptrack_auto,
       patt_num_lines,
-      {}, -- output_tokens
       self.include_hidden,
       self.expand_columns,
       self.clear_undefined)
