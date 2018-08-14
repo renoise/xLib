@@ -65,6 +65,16 @@ xNoteColumn.output_tokens = {
     "effect_amount_value",
 }
 
+--- table, properties that belong in a (toggleable) subcolumn 
+xNoteColumn.subcolumn_tokens = {
+  "volume_value",
+  "panning_value",
+  "delay_value",
+  "effect_number_value",
+  "effect_amount_value",
+}
+
+
 --- table, list of note-names (without the octave part)
 xNoteColumn.NOTE_ARRAY = {
   "C-","C#","D-","D#","E-","F-","F#","G-","G#","A-","A#","B-"
@@ -509,9 +519,13 @@ end
 -- @param note_col (renoise.NoteColumn), 
 -- @param tokens (table), xStreamModel.output_tokens
 -- @param clear_undefined (bool) clear existing data when ours is nil
+-- @param subcolumn_callback (function) optional callback when writing to subcolumns 
 
-function xNoteColumn:do_write(note_col,tokens,clear_undefined)
-  TRACE("xNoteColumn.do_write(note_col,tokens,clear_undefined)",note_col,tokens,clear_undefined)
+function xNoteColumn:do_write(
+  note_col,
+  tokens,
+  clear_undefined,
+  subcolumn_callback)
 
   if not tokens then
     tokens = xNoteColumn.output_tokens
@@ -524,6 +538,8 @@ function xNoteColumn:do_write(note_col,tokens,clear_undefined)
       end)
       if not success then
         LOG("WARNING: xNoteColumn - Trying to write invalid value to property:",token,self[token])
+      elseif subcolumn_callback and table.find(xNoteColumn.subcolumn_tokens,token) then 
+        subcolumn_callback(note_col,token)
       end
     end
   end
@@ -648,6 +664,40 @@ function xNoteColumn:do_write_effect_amount_string(note_col,clear_undefined)
   elseif clear_undefined then
     note_col.effect_amount_string = xLinePattern.EMPTY_STRING
   end
+end
+
+-------------------------------------------------------------------------------
+-- Check if a given subcolumn should be considered empty 
+-- @param note_col (renoise.NoteColumn)
+-- @param token (string), one of xNoteColumn.subcolumn_tokens
+-- @return boolean
+
+function xNoteColumn.subcolumn_is_empty(note_col,token)
+
+  local choices = {
+    ["volume_value"] = function()
+      return note_col[token] == 255
+    end, 
+    ["panning_value"] = function()
+      return note_col[token] == 255 
+    end,
+    ["delay_value"] = function()
+      return note_col[token] == 0
+    end,
+    ["effect_number_value"] = function()
+      return note_col[token] == 0
+    end,
+    ["effect_amount_value"] = function()
+      return note_col[token] == 0
+    end,
+  }
+  
+  if choices[token] then 
+    return choices[token]()    
+  end
+
+  error("Unexpected token - use `xNoteColumn.subcolumn_tokens`")
+  
 end
 
 -------------------------------------------------------------------------------
