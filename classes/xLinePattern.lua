@@ -23,12 +23,6 @@ cLib.require(_xlibroot.."xEffectColumn")
 
 class 'xLinePattern'
 
---- enum, defines the available column types 
-xLinePattern.COLUMN_TYPES = {
-  NOTE_COLUMN = 1,
-  EFFECT_COLUMN = 2,
-}
-
 --- number, maximum number of note columns 
 xLinePattern.MAX_NOTE_COLUMNS = 12
 
@@ -99,7 +93,7 @@ end
 -- @param val (boolean)
 
 function xLinePattern.set_subcolumn_visibility(rns_track_or_phrase,token,val)
-  print("xLinePattern.set_subcolumn_visibility(rns_track_or_phrase,token,val)",rns_track_or_phrase,token,val)
+  TRACE("xLinePattern.set_subcolumn_visibility(rns_track_or_phrase,token,val)",rns_track_or_phrase,token,val)
   
   local choices = {
     ["volume_value"] = function()
@@ -147,8 +141,6 @@ function xLinePattern:do_write(
   expand_columns,
   clear_undefined)
 
-  print(">>> xLinePattern:do_write - expand_columns",expand_columns)
-  
   local rns_line,_patt_idx,_rns_patt,rns_track,_rns_ptrack
   local rns_track_or_phrase
 
@@ -169,8 +161,7 @@ function xLinePattern:do_write(
       self.note_columns,
       include_hidden,
       expand_columns,
-      clear_undefined,
-      xLinePattern.COLUMN_TYPES.NOTE_COLUMN)
+      clear_undefined)
   else
     if self.note_columns then
       LOG("Can only write note-columns to a sequencer track")
@@ -182,20 +173,18 @@ function xLinePattern:do_write(
     self.effect_columns,
     include_hidden,
     expand_columns,
-    clear_undefined,
-    xLinePattern.COLUMN_TYPES.EFFECT_COLUMN)
+    clear_undefined)
 
 end
 
 ---------------------------------------------------------------------------------------------------
 -- [Class] Write to either note or effect column
--- @param rns_columns (array<renoise.NoteColumn>) 
+-- @param rns_columns (table<renoise.NoteColumn or renoise.EffectColumn>) 
 -- @param rns_track_or_phrase (renoise.Track or renoise.InstrumentPhrase) 
 -- @param xline_columns (table<xNoteColumn or xEffectColumn>)
 -- @param include_hidden (bool) apply to hidden columns as well
 -- @param expand_columns (bool) reveal columns as they are written to
 -- @param clear_undefined (bool) clear existing data when ours is nil
--- @param col_type (xLinePattern.COLUMN_TYPES)
 
 function xLinePattern:process_columns(
   rns_columns,
@@ -203,10 +192,10 @@ function xLinePattern:process_columns(
   xline_columns,
   include_hidden,
   expand_columns,
-  clear_undefined,
-  col_type)
+  clear_undefined)
 
   local visible_cols = 1
+  local is_note_column = (type(rns_columns[1]) == "NoteColumn")
   
   -- callback function - reveals non-empty subcolumns 
   -- as values are written to them 
@@ -232,22 +221,25 @@ function xLinePattern:process_columns(
         visible_cols = k
       end
 
-      -- a table can be the result of a redefined column
       local tokens = {}
       local callback = nil
       if (type(col) == "table") then
-        if (col_type == xLinePattern.COLUMN_TYPES.NOTE_COLUMN) then
+        -- convert table descriptor into class instance 
+        if is_note_column then
           col = xNoteColumn(col)
-          tokens = xNoteColumn.output_tokens
-          callback = expand_columns and subcolumn_callback
-        elseif (col_type == xLinePattern.COLUMN_TYPES.EFFECT_COLUMN) then
-          col = xEffectColumn(col)
-          tokens = xEffectColumn.output_tokens
+        else
+          col = xEffectColumn(col)        
         end
       end
-
-      col:do_write(
-        rns_col,tokens,clear_undefined,callback)
+      if (type(col) == "xNoteColumn") then 
+        tokens = xNoteColumn.output_tokens
+        callback = expand_columns and subcolumn_callback
+      elseif (type(col) == "xEffectColumn") then 
+        tokens = xEffectColumn.output_tokens
+      else 
+        error("Unexpected column type: "..type(col))
+      end
+      col:do_write(rns_col,tokens,clear_undefined,callback)
     else
       if clear_undefined then
         rns_col:clear()
@@ -255,9 +247,9 @@ function xLinePattern:process_columns(
     end
 	end
 
-  if (col_type == xLinePattern.COLUMN_TYPES.NOTE_COLUMN) then
+  if is_note_column then
     rns_track_or_phrase.visible_note_columns = visible_cols
-  elseif (col_type == xLinePattern.COLUMN_TYPES.EFFECT_COLUMN) then
+  else
     rns_track_or_phrase.visible_effect_columns = visible_cols
   end
 
