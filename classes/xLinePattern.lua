@@ -257,6 +257,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- [Static] Read from pattern, return note/effect-column descriptors 
+-- This method is made more performant by taking the raw string representation of the line, 
+-- instead of accessing the individual NoteColumn/EffectColumn properties (thanks joule!)
 -- @param rns_line (renoise.PatternLine)
 -- @param max_note_cols (int)
 -- @param max_fx_cols (int)
@@ -267,27 +269,17 @@ function xLinePattern.do_read(rns_line,max_note_cols,max_fx_cols)
 
   local line_str = tostring(rns_line)
   local note_cols, fx_cols = {}, {}
-
-  local string_sub, start_pos = string.sub
-
-  local note_string_to_value   = xNoteColumn.note_string_to_value
-  local instr_string_to_value  = xNoteColumn.instr_string_to_value
-  local delay_string_to_value  = xNoteColumn.delay_string_to_value
-  local column_string_to_value = xNoteColumn.column_string_to_value
-  local number_string_to_value = xEffectColumn.number_string_to_value
+  local start_pos
   
   for ncol = 1, max_note_cols do
-
     start_pos = (ncol*18)-17
-
-    local note_string          = string_sub(line_str, start_pos, start_pos+2)
-    local instrument_string    = string_sub(line_str, start_pos+3, start_pos+4)
-    local volume_string        = string_sub(line_str, start_pos+5, start_pos+6)
-    local panning_string       = string_sub(line_str, start_pos+7, start_pos+8)
-    local delay_string         = string_sub(line_str, start_pos+9, start_pos+10)
-    local effect_number_string = string_sub(line_str, start_pos+11, start_pos+12)
-    local effect_amount_string = string_sub(line_str, start_pos+13, start_pos+14)
-
+    local note_string          = string.sub(line_str, start_pos, start_pos+2)
+    local instrument_string    = string.sub(line_str, start_pos+3, start_pos+4)
+    local volume_string        = string.sub(line_str, start_pos+5, start_pos+6)
+    local panning_string       = string.sub(line_str, start_pos+7, start_pos+8)
+    local delay_string         = string.sub(line_str, start_pos+9, start_pos+10)
+    local effect_number_string = string.sub(line_str, start_pos+11, start_pos+12)
+    local effect_amount_string = string.sub(line_str, start_pos+13, start_pos+14)
     note_cols[ncol] = {
       note_string          = note_string,
       instrument_string    = instrument_string,
@@ -296,31 +288,26 @@ function xLinePattern.do_read(rns_line,max_note_cols,max_fx_cols)
       delay_string         = delay_string,
       effect_number_string = effect_number_string,
       effect_amount_string = effect_amount_string,
-      note_value           = note_string_to_value(note_string),
-      instrument_value     = instr_string_to_value(instrument_string),
-      delay_value          = delay_string_to_value(delay_string),
-      volume_value         = column_string_to_value(volume_string),
-      panning_value        = column_string_to_value(panning_string),
-      effect_number_value  = number_string_to_value(effect_number_string),
-      effect_amount_value  = tonumber("0x"..effect_amount_string)
+      note_value           = xNoteColumn.note_string_to_value(note_string),
+      instrument_value     = xNoteColumn.instr_string_to_value(instrument_string),
+      delay_value          = xNoteColumn.delay_string_to_value(delay_string),
+      volume_value         = xNoteColumn.column_string_to_value(volume_string),
+      panning_value        = xNoteColumn.column_string_to_value(panning_string),
+      effect_number_value  = xEffectColumn.number_string_to_value(effect_number_string),
+      effect_amount_value  = xEffectColumn.amount_string_to_value(effect_amount_string)
     }
-
   end
 
   for fxcol = 1, max_fx_cols do
-
     start_pos = (fxcol*7)+209
-
-    local number_string = string_sub(line_str, start_pos+3, start_pos+4)
-    local amount_string = string_sub(line_str, start_pos, start_pos+2)
-
+    local number_string = string.sub(line_str, start_pos+1, start_pos+2)
+    local amount_string = string.sub(line_str, start_pos+3, start_pos+4)
     fx_cols[fxcol] = {
       number_string = number_string,
       amount_string = amount_string,
-      number_value  = number_string_to_value(number_string),
-      amount_value  = tonumber("0x"..amount_string)
+      number_value  = xEffectColumn.number_string_to_value(number_string),
+      amount_value  = xEffectColumn.amount_string_to_value(amount_string)
     }
-
   end
 
   return note_cols, fx_cols
