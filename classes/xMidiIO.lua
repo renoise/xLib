@@ -8,20 +8,47 @@ Extend applications with MIDI input/output
 .
 #
 
-Requires
-xLib
-cObservable
-xMidiInput
+Class features 
+
+* Easy hot-plugging support 
+* Advanced MIDI event support (NRPN, 14-bit MIDI through xMidiInput)
+
+## Hot plugging 
+
+When you create an instance of the class you can provide a number of input and output ports. 
+These ports (well, strings) may, or may not exist at the time the class is initialized. But 
+they are nevertheless kept around, in case the port might become available at a later point
+in time. 
+
+This makes it really easy to configure hot-plugging for "favourite" devices, as you simply 
+need to know the name of the port in order to automatically connect to it. 
+
+## MIDI Events
+
+When you provide the callback function as constructor argument, incoming MIDI is parsed
+  by xMidiInput before you receive it. The xMidiInput class is also configured through the 
+  constructor (details are shown in the luadoc comment below) 
 
 ]]
 
 --=================================================================================================
 
 cLib.require (_clibroot.."cObservable")
+cLib.require (_xlibroot.."xLib")
+cLib.require (_xlibroot.."xMidiInput")
 
 ---------------------------------------------------------------------------------------------------
 
 class 'xMidiIO' 
+
+---------------------------------------------------------------------------------------------------
+-- constructor 
+-- @param midi_callback_fn (function) the xMidiInput callback function [required]
+-- @param midi_inputs (table) names of MIDI inputs to (attempt) to open 
+-- @param midi_outputs (table) names of MIDI outputs to (attempt) to open 
+-- @param multibyte_enabled (boolean) for xMidiInput
+-- @param nrpn_enabled (boolean) for xMidiInput
+-- @param terminate_nrpns (boolean) for xMidiInput
 
 function xMidiIO:__init(...)
   TRACE("xMidiIO:__init(...)")
@@ -31,14 +58,17 @@ function xMidiIO:__init(...)
   assert(type(args.midi_callback_fn)=="function",
     "Required argument 'midi_callback_fn' missing")
 
-  --- table<string> the ports to open 
-  self.midi_inputs = property(self.get_midi_input,self.set_midi_inputs)
+  --- table<string> input "ports of interest" 
+  self.midi_inputs = property(self.get_midi_inputs,self.set_midi_inputs)
   self.midi_inputs_observable = renoise.Document.ObservableStringList()
 
-  --- table<string> the ports to open 
-  self.midi_outputs = property(self.get_midi_output,self.set_midi_output)
+  --- table<string> output "ports of interest" 
+  self.midi_outputs = property(self.get_midi_outputs,self.set_midi_outputs)
   self.midi_outputs_observable = renoise.Document.ObservableStringList()
 
+  --- ObservableBang, triggered when ports have changed
+  self.device_ports_changed_observable = renoise.Document.ObservableBang()
+  
   ---  xMidiInput
   self.interpretor = xMidiInput{
     multibyte_enabled = args.multibyte_enabled,
@@ -46,10 +76,10 @@ function xMidiIO:__init(...)
     terminate_nrpns = args.terminate_nrpns,
   }
 
-  --- table<renoise.Midi.MidiInputDevice>
+  --- table<renoise.Midi.MidiInputDevice> actual, open ports
   self._midi_input_ports = {}
 
-  --- table<renoise.Midi.MidiOutputDevice>
+  --- table<renoise.Midi.MidiOutputDevice> actual, open ports
   self._midi_output_ports = {}
 
   -- initialize --
@@ -66,7 +96,7 @@ function xMidiIO:__init(...)
   end
 
   renoise.Midi.devices_changed_observable():add_notifier(function()
-    self:initialize_midi_devices()
+    self:available_device_ports_changed()
   end)
 
   self:initialize_midi_devices()
@@ -230,6 +260,28 @@ function xMidiIO:initialize_midi_devices()
     self:open_midi_output(v.value)
   end
 
+end
+
+--------------------------------------------------------------------------------
+--- Activate all "ports of interest" that are now available but weren't before  
+--(invoke when device input or output port setting changed)
+
+function xMidiIO:available_device_ports_changed()
+  TRACE("xMidiIO:available_device_ports_changed()")
+
+  for k = 1, #self.midi_inputs do
+    local port_name = self.midi_inputs[k].value
+    self:open_midi_input(port_name)
+  end
+
+  for k = 1, #self.midi_outputs do
+    local port_name = self.midi_outputs[k].value
+    self:open_midi_output(port_name)
+  end
+
+  -- allow any attached notifiers to respond as well 
+  self.device_ports_changed_observable:bang()
+  
 end
 
 ---------------------------------------------------------------------------------------------------
