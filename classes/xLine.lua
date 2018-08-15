@@ -137,6 +137,12 @@ function xLine:do_write(
 
   -- track automation
   if self.automation and ptrack_auto then
+    
+    -- convert descriptor into class instance if needed
+    if (type(self.automation) == "table") then 
+      self.automation = xLineAutomation(self.automation)  
+    end
+    
     self.automation:do_write(
       line,
       ptrack_auto,
