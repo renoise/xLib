@@ -1,6 +1,12 @@
 # Changelog
 
 ## 0.55 - in progress
+- `xMidiIO`: add hot-plug support (device change), improve documentation
+- `xLine/Pattern`: don't pass down tokens when writing, simplify
+- `xNoteColumn`: ability to use callback when writing (reveal columns on the fly)
+- `xStreamBuffer`: callback-based implementation, improved performance 
+- `xSongPos`: bug-fixes, beat/songpos converter methods
+- `xSongPos`: made most methods immutable (don't modify in-place, instead return)
 - `xSample.convert_sample`: fix issue where stereo becomes mono (no channel action)
 - `xSampleBufferOperation`: switch to purely static impl.
 - `xSampleMapping`: add `has_full_note_range` method
