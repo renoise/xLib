@@ -454,7 +454,8 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Create content: process xline using our callback method, 
 -- and update output_buffer with result
--- @param num_lines, int 
+-- @param num_lines (int)
+-- @param xinc (number)
 
 function xStreamBuffer:_create_content(xinc,pos)
   TRACE("xStreamBuffer:_create_content(xinc,pos)",xinc,pos)

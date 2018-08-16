@@ -116,7 +116,6 @@ end
 ---------------------------------------------------------------------------------------------------
 -- get memoized key for a sample mapping  
 -- @param mapping (SampleMapping or xSampleMapping)
--- @param idx (number) the source mapping index 
 -- @return string 
 
 function xSampleMapping.get_memoized_key(mapping)
@@ -134,7 +133,6 @@ end
 ---------------------------------------------------------------------------------------------------
 -- get memoized key for a sample mapping  
 -- @param mapping (SampleMapping or xSampleMapping)
--- @param idx (number) the source mapping index 
 -- @return string 
 
 function xSampleMapping.get_memoized_key(mapping)

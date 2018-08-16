@@ -91,7 +91,8 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Convert a number (number of beats) into a SongPos 
 -- @param beats (number)
--- @eturn renoise.SongPos or nil
+-- @param args, table (xSongPos-options - see description of class)
+-- @return renoise.SongPos or nil
 
 function xSongPos.create_from_beats(beats,args)
   TRACE("xSongPos.create_from_beats(beats,args)",beats,args)
@@ -118,8 +119,9 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- Figure out the position in beats (identical to e.g. "edit_pos_beats")
--- @param beats (number)
--- @eturn renoise.SongPos or nil
+-- @param pos (SongPos)
+-- @param args, table (xSongPos-options - see description of class)
+-- @return renoise.SongPos or nil
 
 function xSongPos.get_number_of_beats(pos,args)
   TRACE("xSongPos.get_number_of_beats(pos,args)",pos,args)
@@ -167,7 +169,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Apply a position to the "transport.edit_pos"
 -- NB: take care - the property might not be updated immediately 
--- @param pos: SongPos, or SongPos-alike object (e.g. xCursorPos)
+-- @param pos (SongPos, or SongPos-alike object)
 
 function xSongPos.apply_to_edit_pos(pos)
   TRACE("xSongPos.apply_to_edit_pos(pos)",pos)

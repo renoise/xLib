@@ -61,6 +61,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- get sample name, as it appears in the sample-list (untitled samples included)
 -- @param sample (renoise.Sample)
+-- @param sample_idx (number)
 -- @return string
 
 function xSample.get_display_name(sample,sample_idx)

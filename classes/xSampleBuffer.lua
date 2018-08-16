@@ -132,7 +132,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- get the size of the selected range (1 - #number_of_frames)
--- @param renoise.SampleBuffer
+-- @param buffer (renoise.SampleBuffer)
+-- @return number
 
 function xSampleBuffer.get_selection_range(buffer)
   --assert(type(buffer)=="SampleBuffer")
@@ -204,7 +205,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- return the function that return the selected sample data
 -- (source: modulation.lua)
--- @param renoise.SampleBuffer
+-- @param buffer (renoise.SampleBuffer)
 -- @param rough (boolean)
 -- @param sel_start (number)
 -- @param sel_end (number)
@@ -563,6 +564,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- check for gaps, return first viable offset
+-- @param num_frames (number)
 -- @param offset (number), between 0x00 and 0xFF
 -- @param reverse (boolean), match in reverse
 -- @return number 
@@ -577,6 +579,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- return next viable offset
+-- @param num_frames (number)
 -- @param offset (number), between 0x00 and 0xFF
 -- @return number 
 
@@ -591,6 +594,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- return previous viable offset
+-- @param num_frames (number)
 -- @param offset (number), between 0x00 and 0xFF
 -- @return number 
 
@@ -712,7 +716,6 @@ end
 -- get a line by position in buffer 
 -- @param buffer (renoise.SampleBuffer)
 -- @param frame (number)
--- @param lpb (number) will use song LPB if not defined
 -- @param bpm (number) will use song BPM if not defined
 -- @return number or nil if out of bounds
 
@@ -749,6 +752,13 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- parse processing arguments, provide buffer defaults if undefined 
+-- note: `range` is derived from current selection in buffer 
+-- @param ... 
+--  number_of_frames (number)
+--  number_of_channels (number)
+--  selected_channel (number)
+--  selection_start (number)
+--  selection_end (number)
 -- @return table
 
 function xSampleBuffer.parse_processing_args(...)
@@ -774,14 +784,7 @@ end
 -- Processing methods 
 ---------------------------------------------------------------------------------------------------
 -- create waveform from waveform/modulator function 
--- fn 
--- buffer
--- [mod_fn]
--- [selection_start]
--- [selection_end]
--- [selected_channel]
--- [number_of_channels]
--- [number_of_frames]
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.create_wave_fn(...)
   TRACE("xSampleBuffer.create_wave_fn(...)")
@@ -815,7 +818,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- extend sample length (pad with silent frames)
--- @param extend_by (number), how many frames - positive @ end or negative @ start
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.extend(...)
   TRACE("xSampleBuffer.extend(...)")
@@ -852,6 +855,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- insert data in selected channel(s)
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.sweep_ins(...)
   TRACE("xSampleBuffer.sweep_ins(...)")
@@ -867,6 +871,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- insert data in all channels
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.ins_in_all_ch(...)
   TRACE("xSampleBuffer.ins_in_all_ch(...)")
@@ -894,6 +899,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- insert data in a single channel
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.ins_in_one_ch(...)
   TRACE("xSampleBuffer.ins_in_one_ch(...)")
@@ -961,6 +967,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- silence entire sample 
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.empty_smple(...)
   TRACE("xSampleBuffer.empty_smple(...)")
@@ -981,6 +988,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- trim: delete samples outside selection 
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.trim(...)
   TRACE("xSampleBuffer.trim(...)")
@@ -1006,6 +1014,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- delete from selected channel(s) while preserving length 
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.sync_del(...)
   TRACE("xSampleBuffer.sync_del(...)")
@@ -1022,7 +1031,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- delete from all channels (see sync_del)
--- @buffer, source buffer
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.del_in_all_ch(...)
   TRACE("xSampleBuffer.del_in_all_ch(...)",...)
@@ -1052,7 +1061,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- delete from single channel (see sync_del)
--- @buffer, source buffer
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.del_in_one_ch(...)
   TRACE("xSampleBuffer.del_in_one_ch(...)")
@@ -1096,9 +1105,7 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- shift/rotate the specified region
--- @param frame (number, number of frames to shift by)
--- @param range (number)
--- @param buffer (renoise.SampleBuffer)
+-- @param ... (see parse_processing_args)
 -- @return function
 
 function xSampleBuffer.phase_shift(...)
@@ -1168,9 +1175,7 @@ end
 
 
 ---------------------------------------------------------------------------------------------------
--- @param buffer (renoise.SampleBuffer)
--- @param fn (number, waveform function )
--- @param mod_fn (number, modulating function)
+-- @param ... (see parse_processing_args)
 
 function xSampleBuffer.set_fade(...)
   TRACE("xSampleBuffer.set_fade(...)")

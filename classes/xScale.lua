@@ -134,7 +134,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Shift the keys 
 -- @param scale (table), one of xScale.SCALES 
--- @param [scale_key] (int), 1=C, 2=C#, 3=D, ...
+-- @param key (int), 1=C, 2=C#, 3=D, ... 
 
 function xScale.get_shifted_keys(scale,key)
   TRACE("xScale.get_shifted_keys(scale,key)",scale,key)

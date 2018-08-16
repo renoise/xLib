@@ -43,7 +43,7 @@ end
 
 --------------------------------------------------------------------------------
 -- [Static] Resolve the device/parameter indices based on a parameter
--- @param param, renoise.AudioDevice 
+-- @param device, renoise.AudioDevice 
 -- @param track_idx, restrict search to this track (optional)
 -- @return int, device index
 
@@ -294,8 +294,8 @@ function xAudioDevice.copy_automation(track_idx,device_idx,seq_range,yield_at)
 end  
 
 ---------------------------------------------------------------------------------------------------
--- @param device (renoise.AudioDevice)
 -- @param track_idx (number)
+-- @param device (renoise.AudioDevice)
 -- @param seq_range (xSequencerSelection) range that should be cleared
 
 function xAudioDevice.clear_automation(track_idx,device,seq_range)

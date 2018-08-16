@@ -117,7 +117,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Locate a sample-mapping that match the provided information
 -- @param mappings (table<SampleMapping/xSampleMapping>), can be ordered by memoized keys
--- @param note_range (table)
+-- @param note_rng (table)
 -- @param vel_rng (table)
 -- @param layer (number, renoise.Instrument.LAYER_NOTE_XX), defaults to LAYER_NOTE_ON
 -- @return xSampleMapping or nil 
@@ -266,6 +266,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- @param vel_steps (number), the number of velocity layers to create
+-- @param vel_min (number)
+-- @param vel_max (number)
 -- return table{number,number}
 
 function xKeyZone.compute_multisample_velocities(vel_steps,vel_min,vel_max)
@@ -294,6 +296,8 @@ end
 
 ---------------------------------------------------------------------------------------------------
 -- @param note_steps (number), create a new mapping for every Nth note 
+-- @param note_min (number)
+-- @param note_max (number)
 -- @param extend (boolean), extend "outside" mapped region 
 -- return table{number,number}
 
