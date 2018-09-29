@@ -94,7 +94,7 @@ for i = 1,16 do
   table.insert(xRule.ASPECT_DEFAULTS.CHANNEL,i)
 end
 
-for i = 1,128 do
+for i = 1,256 do
   table.insert(xRule.ASPECT_DEFAULTS.TRACK_INDEX,i)
   table.insert(xRule.ASPECT_DEFAULTS.INSTRUMENT_INDEX,i)
 end
@@ -103,6 +103,7 @@ end
 -- (assume integer when not listed)
 xRule.ASPECT_BASETYPE = {
   SYSEX = "string",
+  --BIT_DEPTH = "string",
   PORT_NAME = "string",
   DEVICE_NAME = "string",
   MESSAGE_TYPE = "string",
@@ -155,6 +156,7 @@ xRule.ACTIONS = {
   ROUTE_MESSAGE = "route_message",  
   SET_CHANNEL = "set_channel",
   SET_INSTRUMENT = "set_instrument",
+  SET_BIT_DEPTH = "set_bit_depth",
   SET_MESSAGE_TYPE = "set_message_type",
   SET_PORT_NAME = "set_port_name",
   SET_DEVICE_NAME = "set_device_name",
@@ -182,6 +184,7 @@ xRule.ACTIONS_FULL = {
   SET_PORT_NAME = xRule.ACTIONS.SET_PORT_NAME,
   SET_DEVICE_NAME = xRule.ACTIONS.SET_DEVICE_NAME,
   SET_TRACK = xRule.ACTIONS.SET_TRACK,
+  SET_BIT_DEPTH = xRule.ACTIONS.SET_BIT_DEPTH,
   SET_MESSAGE_TYPE = xRule.ACTIONS.SET_MESSAGE_TYPE,
   SET_VALUE_1 = "set_value_1",
   SET_VALUE_2 = "set_value_2",
@@ -948,15 +951,17 @@ function xRule:compile()
       elseif (k2 == xRule.ACTIONS.ROUTE_MESSAGE) then
         str_fn = str_fn .. string.format("route_message('%s') \n",v2)
       elseif (k2 == xRule.ACTIONS.SET_INSTRUMENT) then
-        str_fn = str_fn .. string.format("instrument = %d \n",v2)
+        str_fn = str_fn .. string.format("instrument_index = %d \n",v2)
       elseif (k2 == xRule.ACTIONS.SET_TRACK) then
-        str_fn = str_fn .. string.format("track = %d \n",v2)
+        str_fn = str_fn .. string.format("track_index = %d \n",v2)
       elseif (k2 == xRule.ACTIONS.SET_PORT_NAME) then
         str_fn = str_fn .. string.format("port_name = '%s' \n",v2)
       elseif (k2 == xRule.ACTIONS.SET_DEVICE_NAME) then
         str_fn = str_fn .. string.format("device_name = '%s' \n",v2)
       elseif (k2 == xRule.ACTIONS.SET_CHANNEL) then
         str_fn = str_fn .. string.format("channel = %d \n",v2)
+      elseif (k2 == xRule.ACTIONS.SET_BIT_DEPTH) then
+        str_fn = str_fn .. string.format("bit_depth = %d \n",v2)
       elseif (k2 == xRule.ACTIONS.SET_MESSAGE_TYPE) then
         str_fn = str_fn .. string.format("message_type = '%s' \n",v2)
       elseif (string.find(k2,"set_value_",nil,true)) then
@@ -967,18 +972,18 @@ function xRule:compile()
           str_fn = str_fn .. string.format("values[%d] = %d \n",value_idx,v2)
         end
       elseif (k2 == xRule.ACTIONS.INCREASE_INSTRUMENT) then
-        str_fn = str_fn .. string.format("instrument = instrument + %d \n",v2)
+        str_fn = str_fn .. string.format("instrument_index = instrument_index + %d \n",v2)
       elseif (k2 == xRule.ACTIONS.INCREASE_TRACK) then
-        str_fn = str_fn .. string.format("track = track + %d \n",v2)
+        str_fn = str_fn .. string.format("track_index = track_index + %d \n",v2)
       elseif (k2 == xRule.ACTIONS.INCREASE_CHANNEL) then
         str_fn = str_fn .. string.format("channel = channel + %d \n",v2)
       elseif (string.find(k2,"increase_value_",nil,true)) then
         local value_idx = xRule.get_value_index(k2)
         str_fn = str_fn .. string.format("values[%d] = values[%d] + %d \n",value_idx,value_idx,v2)
       elseif (k2 == xRule.ACTIONS.DECREASE_INSTRUMENT) then
-        str_fn = str_fn .. string.format("instrument = instrument - %d \n",v2)
+        str_fn = str_fn .. string.format("instrument_index = instrument_index - %d \n",v2)
       elseif (k2 == xRule.ACTIONS.DECREASE_TRACK) then
-        str_fn = str_fn .. string.format("track = track - %d \n",v2)
+        str_fn = str_fn .. string.format("track_index = track_index - %d \n",v2)
       elseif (k2 == xRule.ACTIONS.DECREASE_CHANNEL) then
         str_fn = str_fn .. string.format("channel = channel - %d \n",v2)
       elseif (string.find(k2,"decrease_value_",nil,true)) then
