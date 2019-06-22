@@ -38,7 +38,7 @@ end
 
 function xPatternPos.jump_to_line(line_idx)
   TRACE("xPatternPos.jump_to_line(line_idx)",line_idx)
-  line_idx = xSongPos.restrict_line_index(rns.selected_pattern,line_idx)
+  line_idx = xPatternPos.restrict_line_index(line_idx)
   rns.selected_line_index = line_idx
 end
 
