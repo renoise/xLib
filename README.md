@@ -39,7 +39,7 @@ To improve performance, xLib is using a single reference to the Renoise song obj
 ## Documentation
 
 Point your browser to this location to browse the auto-generated luadocs:  
-https://renoise.github.io/luadocs/xlib
+https://renoise.github.io/libraries/xlib
 
 
 ## Examples
